@@ -1,0 +1,4 @@
+#! /bin/bash
+
+set -x -e
+git config core.hooksPath scripts/git-hooks/

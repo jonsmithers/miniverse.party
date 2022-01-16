@@ -1,0 +1,8 @@
+#! /bin/bash
+set -e
+
+cd "$(dirname "$0")"
+cd "$(git rev-parse --show-toplevel)"
+
+set -x
+deno run --allow-read --allow-net main.ts
