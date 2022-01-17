@@ -4,4 +4,4 @@ cd "$(git rev-parse --show-toplevel)"/ws-server
 
 set -e -x
 
-deno fmt --check src/*.ts
+deno fmt --options-single-quote src/*.ts --check 
