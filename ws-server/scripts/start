@@ -1,8 +1,7 @@
 #! /bin/bash
-set -e
-
 cd "$(dirname "$0")"
-cd "$(git rev-parse --show-toplevel)"
+cd "$(git rev-parse --show-toplevel)"/ws-server
 
-set -x
+set -e -x
+
 deno run --allow-read --allow-net src/main.ts
