@@ -13,6 +13,12 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
+        <button onClick={() => {
+          console.log('hi');
+          console.log(process.env.NEXT_PUBLIC_WEBSOCKET_URL);
+          const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WEBSOCKET_URL!}?userId=${Math.random()}`);
+          console.log('ws', ws);
+        }}>connect websocket</button>
         <h1 className={styles.title}>
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
