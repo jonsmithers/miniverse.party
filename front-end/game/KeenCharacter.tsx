@@ -1,59 +1,32 @@
-import { AnimatedSprite, Container, useTick } from '@inlet/react-pixi';
+import { AnimatedSprite, Container, useTick, } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js'
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useRef, useState, } from 'react';
 import { useGameContext } from './GameContext';
+import { useKeyState } from './utils';
 
-const CharacterStates = ['runRight'] as const;
+const CharacterStates = ['runRight', 'runLeft', 'standRight', 'standLeft'] as const;
 type CharacterState = typeof CharacterStates[number];
 
-interface InternalState<T> {
-  speculatedValue: T;
-  baseValue: T;
-  baseTimestamp: number;
-}
-/**
- * @return - speculated value
- */
-function useSpeculation<T>(baseValue: T, speculate: (baseValue: T, millisElapsed: number) => T): T {
-  const [state, setState] = useState<InternalState<T>>(() => ({ speculatedValue: baseValue, baseValue, baseTimestamp: performance.now() }));
-
-  useEffect(() => {
-    setState({
-      speculatedValue: baseValue,
-      baseValue,
-      baseTimestamp: performance.now(),
-    });
-  }, [baseValue]);
-
-  useTick(() => {
-    setState(old => ({
-      ...old,
-      speculatedValue: speculate(old.baseValue, performance.now() - old.baseTimestamp),
-    }));
-  });
-
-  return state.speculatedValue;
-}
-
-export const KeenCharacter: React.FC<{ characterIndex: number, characterState: CharacterState }> = (props) => {
+export const KeenCharacter: React.FC<{ position: [number, number]; characterState: CharacterState }> = (props) => {
   const gameContext = useGameContext();
   const { loader } = gameContext;
-  const { x, y } = gameContext.stage.characters[props.characterIndex];
-  const position: [number, number] = useMemo(() => [x,y], [x,y]);
-  const speculatedPosition = useSpeculation(position, ([x,y], elapsed) => [x + elapsed/10, y] as [number, number]);
 
   const keenSpritesheet = useMemo(() => loader === 'still loading' ? undefined : loader.resources.keen.spritesheet, [loader]);
   const spriteMap: undefined | {
-    [i in typeof CharacterStates[number]]: PIXI.Texture<PIXI.Resource>[]
+    [i in CharacterState]: PIXI.Texture<PIXI.Resource>[]
   } = useMemo(() => keenSpritesheet && ({
     runRight: keenSpritesheet.animations['run right '],
+    runLeft: keenSpritesheet.animations['run left '],
+    standRight: [keenSpritesheet.textures['standing.png']],
+    standLeft: [keenSpritesheet.textures['stand left.png']],
   }), [keenSpritesheet]);
 
   const textures = useMemo(() => spriteMap?.[props.characterState], [props.characterState, spriteMap])
 
   return (
-    <Container position={speculatedPosition}>
+    <Container position={props.position}>
       {textures && <AnimatedSprite
+        key={props.characterState}
         textures={textures}
         isPlaying={true}
         scale={2}
@@ -63,80 +36,76 @@ export const KeenCharacter: React.FC<{ characterIndex: number, characterState: C
   );
 }
 
+const VELOCITY_RIGHT = ([x,y]: [number, number], elapsed: number) => [x + elapsed/6, y] as [number, number]
+const VELOCITY_LEFT = ([x,y]: [number, number], elapsed: number) => [x - elapsed/6, y] as [number, number]
+const IDLE = ([x,y]: [number, number], elapsed: number) => [x, y] as [number, number]
 
-
-
-
-
-
-
-
-
-
-// NEW IDEA
-// const States = ['runRightOrSomething', 'standRightOrSomething'] as const
-// const NewIdeaForThis = {
-//   runRightOrSomething: GenericSprite.animate('name')
-//   standRightOrSomething: GenericSprice.static('other name')
-// }
-
-  /*
-const KeenAnimationNames = {
-  runRight: 'run right ',
-  runLeft: 'run left ',
-  jumpRight: 'jump right ',
-} as const;
-const KeenStaticNames = {
-  standLeft: 'stand left.png',
-  standRight: 'standing.png',
-} as const;
-export const KeenStates = Object.assign({}, KeenAnimationNames, KeenStaticNames);
-const KeenAnimationNamesArray = Object.values(KeenAnimationNames);
-type KeenAnimationName = typeof KeenAnimationNamesArray[number];
-const isKeenAnimationName = (s: string): s is KeenAnimationName => KeenAnimationNamesArray.includes(s as any);
-const KeenStaticNamesArray = Object.values(KeenStaticNames);
-type KeenStaticName = typeof KeenStaticNamesArray[number];
-
-interface KeenSpriteHolder {
-  animationSprites: {
-    [index in KeenAnimationName]: PIXI.AnimatedSprite;
-  };
-  staticSprites: {
-    [index in KeenStaticName]: PIXI.Sprite;
-  };
+interface TimedPosition {
+  position: [number, number];
+  timestamp: number;
 }
-export class KeenCharacter extends PIXI.Container implements KeenSpriteHolder {
-  animationSprites: KeenSpriteHolder['animationSprites'];
-  staticSprites: KeenSpriteHolder['staticSprites'];
-  constructor(loader: PIXI.Loader) {
-    super();
-    const keenSpritesheet = loader.resources.keen.spritesheet
-    this.animationSprites = {
-      [KeenAnimationNames.runRight]: new PIXI.AnimatedSprite(keenSpritesheet!.animations[KeenAnimationNames.runRight]),
-      [KeenAnimationNames.runLeft]: new PIXI.AnimatedSprite(keenSpritesheet!.animations[KeenAnimationNames.runLeft]),
-      [KeenAnimationNames.jumpRight]: new PIXI.AnimatedSprite(keenSpritesheet!.animations[KeenAnimationNames.jumpRight]),
-    }
-    this.staticSprites = {
-      [KeenStaticNames.standLeft]: new PIXI.Sprite(keenSpritesheet!.textures[KeenStaticNames.standLeft]),
-      [KeenStaticNames.standRight]: new PIXI.Sprite(keenSpritesheet!.textures[KeenStaticNames.standRight]),
-    };
-    Object.values(this.animationSprites).forEach(sprite => {
-      sprite.scale.set(2);
-      sprite.animationSpeed = 0.08;
+function useMovement(initialPosition: [number, number], moveFunc: ([x,y]: [number, number], elapsed: number) => [number, number]) {
+  const [timedPosition, setTimedPosition] = useState<TimedPosition>({ position: initialPosition, timestamp: performance.now() });
+  const position = timedPosition.position;
+  useTick(() => {
+    setTimedPosition({
+      position: moveFunc(position, performance.now() - timedPosition.timestamp),
+      timestamp: performance.now(),
     });
-    Object.values(this.staticSprites).forEach(sprite => {
-      sprite.scale.set(2);
-    });
-    this.state = KeenStaticNames.standRight;
-  }
-  set state(newState: KeenAnimationName | KeenStaticName) {
-    this.removeChildren();
-    if (isKeenAnimationName(newState)) {
-      this.addChild(this.animationSprites[newState]);
-      this.animationSprites[newState].play();
+  });
+  return [position]
+}
+
+export function KeyboardControlPosition(
+  props: { children(position: [number, number], state: CharacterState): JSX.Element }
+): JSX.Element {
+  const rightKeyPressed = useKeyState('ArrowRight')
+  const leftKeyPressed = useKeyState('ArrowLeft')
+  const movementFunc = useMemo(() => {
+    if (rightKeyPressed) {
+      return VELOCITY_RIGHT;
+    } else if (leftKeyPressed) {
+      return VELOCITY_LEFT;
     } else {
-      this.addChild(this.staticSprites[newState]);
+      return IDLE;
     }
-  }
+  }, [leftKeyPressed, rightKeyPressed]);
+  const characterState = useMemo(() => {
+    switch (movementFunc) {
+      case VELOCITY_RIGHT:
+      return 'runRight';
+      case VELOCITY_LEFT:
+      return 'runLeft';
+      default:
+      return 'standRight';
+    }
+  }, [movementFunc]);
+  const [position] = useMovement([0,0], movementFunc);
+  return (
+    <>
+     {props.children(position, characterState)}
+    </>
+  );
 }
-  */
+
+/**
+ * @param value - current value
+ * @return the value from the previous render (or undefined for first render)
+ */
+function usePreviousValue<T>(value: T): T | undefined {
+  const previousValueRef = useRef<T | undefined>(undefined);
+  const previousValue = previousValueRef.current;
+  previousValueRef.current = value;
+  return previousValue;
+}
+
+/**
+ * Returns true if this value is different this render from what it was _last_ render.
+ *
+ * ISSUE: on first render, this returns `(value === undefined)`
+ *
+ * @param value
+ */
+export function useHasChanged<T>(value: T): boolean {
+  return value !== usePreviousValue(value);
+}

@@ -44,11 +44,6 @@ export const GameContextProvider: React.FC = (props) => {
   );
 };
 
-export const MyTest: React.FC = () => {
-  console.log('mytest', useGameContext());
-  return (<></>);
-}
-
 function createLoader(): Promise<PIXI.Loader> {
   const loader: PIXI.Loader = new PIXI.Loader()
   loader.add('keen', '/game-assets/keen.json');

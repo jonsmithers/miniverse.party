@@ -1,10 +1,9 @@
 import { Container, Sprite, Stage, Text } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js'
-import { useEffect, useState } from 'react';
-import { GameContextProvider, MyTest } from './GameContext';
-import { KeenCharacter } from './KeenCharacter';
+import { useMemo, useState } from 'react';
+import { GameContextProvider } from './GameContext';
+import { KeenCharacter, KeyboardControlPosition } from './KeenCharacter';
 import { Connection } from './websocket';
-
 
 export default function ComponentWrapper() {
 
@@ -12,7 +11,11 @@ export default function ComponentWrapper() {
   return (
     <Stage width={300} height={300} options={{ backgroundColor: 0xeef1f5 }}>
       <GameContextProvider>
-        <KeenCharacter characterIndex={0} characterState="runRight" />
+        <KeyboardControlPosition>
+          {(position, characterState) => (
+            <KeenCharacter position={position} characterState={characterState} />
+          )}
+        </KeyboardControlPosition>
         <Container position={[150, 150]}>
         </Container>
         <Text
