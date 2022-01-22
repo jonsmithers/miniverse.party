@@ -48,18 +48,15 @@ class Character {
   }
 }
 
-function createLoader() {
+async function createLoader() {
   const loader: PIXI.Loader = new PIXI.Loader();
   loader.add('keen', '/game-assets/keen.json');
   loader.load((_, resources) => {
     console.log('resources', resources);
   });
-  const resourceLoadPromise = new Promise<PIXI.Loader>((resolve, reject) => {
+  const loadedLoader = await new Promise<PIXI.Loader>((resolve, reject) => {
     loader.onComplete.add(resolve);
     loader.onError.add(reject);
   });
-  resourceLoadPromise
-    .then(() => console.log('successfully loaded resources'))
-    .catch((e) => console.error('error loading game resource:', e));
-  return resourceLoadPromise.then((loader) => ref(loader));
+  return ref(loadedLoader);
 }
