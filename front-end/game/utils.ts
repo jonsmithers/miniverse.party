@@ -1,5 +1,5 @@
 import { useTick } from '@inlet/react-pixi';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /**
  * @return - speculated value
@@ -68,4 +68,10 @@ export function useKeyState(name: KeyboardEvent['key']): boolean {
     };
   }, [name]);
   return isPressed;
+}
+
+export function useMakeOnce<T>(factory: () => T): T {
+  const t = useRef<T>();
+  t.current = t.current ?? factory();
+  return t.current;
 }

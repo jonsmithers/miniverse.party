@@ -1,7 +1,8 @@
 import { AnimatedSprite, Container, useTick } from '@inlet/react-pixi';
+import { observer } from 'mobx-react-lite';
 import * as PIXI from 'pixi.js';
 import { useMemo, useRef, useState } from 'react';
-import { useGameContext } from './GameContext';
+import { RootStore, useGameContext } from './GameContext';
 import { useKeyState } from './utils';
 
 const CharacterStates = [
@@ -12,11 +13,13 @@ const CharacterStates = [
 ] as const;
 type CharacterState = typeof CharacterStates[number];
 
-export const KeenCharacter: React.FC<
-  { position: [number, number]; characterState: CharacterState }
-> = (props) => {
-  const gameContext = useGameContext();
-  const { loader } = gameContext;
+export const KeenCharacter: React.FC<{
+  position: [number, number];
+  characterState: CharacterState;
+  rootStore: RootStore;
+}> = observer((props) => {
+  const loader = props.rootStore.loader;
+  // TODO throw promise if not loaded yet
 
   const keenSpritesheet = useMemo(
     () =>
@@ -55,7 +58,7 @@ export const KeenCharacter: React.FC<
       )}
     </Container>
   );
-};
+});
 
 const VELOCITY_RIGHT = ([x, y]: [number, number], elapsed: number) =>
   [x + elapsed / 6, y] as [number, number];
