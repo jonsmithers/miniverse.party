@@ -1,14 +1,13 @@
-import * as PIXI from 'pixi.js';
 import { createContext, useContext } from 'react';
 import { useMakeOnce } from './utils';
-import { proxy, ref, useSnapshot } from 'valtio';
+import { useSnapshot } from 'valtio';
 import { DeepResolveType } from 'valtio/vanilla';
 import { RootStore } from './state';
 
 export interface GameContext {
   rootStore: RootStore;
 }
-const gameContext = createContext<GameContext>('what' as any);
+const gameContext = createContext<GameContext>('jk' as unknown as GameContext);
 export const useGameContext = (): GameContext => {
   return useContext(gameContext);
 };

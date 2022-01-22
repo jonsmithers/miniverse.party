@@ -7,3 +7,4 @@ set -e -x
 shopt -s extglob
 GLOBIGNORE='node_modules/*'
 deno fmt --options-single-quote *.ts?(x) **/*.ts?(x)
+npm run lint -- --fix

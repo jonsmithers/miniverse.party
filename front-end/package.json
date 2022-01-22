@@ -5,12 +5,12 @@
     "dev": "next dev",
     "build": "next build && next export",
     "start": "next start",
-    "lint": "next lint",
+    "previous-lint": "next lint",
+    "lint": "eslint pages/ game/",
     "postinstall": "../scripts/configure-git"
   },
   "dependencies": {
     "@inlet/react-pixi": "^6.6.5",
-    "eslint-plugin-valtio": "^0.4.1",
     "next": "12.0.8",
     "react": "17.0.2",
     "react-dom": "17.0.2",
@@ -19,8 +19,12 @@
   "devDependencies": {
     "@types/node": "17.0.8",
     "@types/react": "17.0.38",
+    "@typescript-eslint/eslint-plugin": "^5.10.0",
+    "@typescript-eslint/parser": "^5.10.0",
     "eslint": "8.7.0",
     "eslint-config-next": "12.0.8",
+    "eslint-plugin-unused-imports": "^2.0.0",
+    "eslint-plugin-valtio": "^0.4.1",
     "typescript": "4.5.4"
   }
 }

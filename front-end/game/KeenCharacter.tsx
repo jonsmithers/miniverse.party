@@ -1,10 +1,7 @@
 import { AnimatedSprite, Container, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { useMemo, useRef, useState } from 'react';
-import { useSnapshot } from 'valtio';
-import { DeepResolveType } from 'valtio/vanilla';
-import { RootStore, useGameContext, useStore } from './GameContext';
-import { useKeyState } from './utils';
+import { useStore } from './GameContext';
 
 const CharacterStates = [
   'runRight',
@@ -18,7 +15,11 @@ export const KeenCharacter: React.FC<{
   position: [number, number];
   characterState: CharacterState;
 }> = ((props) => {
-  const keenSpritesheet = useStore().loader.resources.keen.spritesheet!;
+  const keenSpritesheet = useStore().loader.resources.keen.spritesheet;
+
+  if (keenSpritesheet === undefined) {
+    throw new Error('unreachable');
+  }
 
   const spriteMap: {
     [i in CharacterState]: PIXI.Texture<PIXI.Resource>[];
@@ -54,7 +55,7 @@ const VELOCITY_RIGHT = ([x, y]: [number, number], elapsed: number) =>
   [x + elapsed / 6, y] as [number, number];
 const VELOCITY_LEFT = ([x, y]: [number, number], elapsed: number) =>
   [x - elapsed / 6, y] as [number, number];
-const IDLE = ([x, y]: [number, number], elapsed: number) =>
+const IDLE = ([x, y]: [number, number], _elapsed: number) =>
   [x, y] as [number, number];
 
 interface TimedPosition {

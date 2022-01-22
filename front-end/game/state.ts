@@ -1,5 +1,5 @@
 import * as PIXI from 'pixi.js';
-import { proxy, ref, useSnapshot } from 'valtio';
+import { proxy, ref } from 'valtio';
 
 export class RootStore {
   character: Character = Character.create();
