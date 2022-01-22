@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 import { useMemo, useRef, useState } from 'react';
 import { useSnapshot } from 'valtio';
 import { DeepResolveType } from 'valtio/vanilla';
-import { RootStore, useGameContext } from './GameContext';
+import { RootStore, useGameContext, useStore } from './GameContext';
 import { useKeyState } from './utils';
 
 const CharacterStates = [
@@ -18,8 +18,7 @@ export const KeenCharacter: React.FC<{
   position: [number, number];
   characterState: CharacterState;
 }> = ((props) => {
-  const snap = useSnapshot(useGameContext().rootStore);
-  const keenSpritesheet = snap.loader.resources.keen.spritesheet!;
+  const keenSpritesheet = useStore().loader.resources.keen.spritesheet!;
 
   const spriteMap: {
     [i in CharacterState]: PIXI.Texture<PIXI.Resource>[];
@@ -85,8 +84,8 @@ export function KeyboardControlPosition(
     children(position: [number, number], state: CharacterState): JSX.Element;
   },
 ): JSX.Element {
-  const rightKeyPressed = useKeyState('ArrowRight');
-  const leftKeyPressed = useKeyState('ArrowLeft');
+  const rightKeyPressed = useStore().keyboardStore.right.isPressed;
+  const leftKeyPressed = useStore().keyboardStore.left.isPressed;
   const movementFunc = useMemo(() => {
     if (rightKeyPressed) {
       return VELOCITY_RIGHT;

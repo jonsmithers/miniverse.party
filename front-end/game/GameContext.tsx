@@ -1,19 +1,52 @@
 import * as PIXI from 'pixi.js';
-import { createContext, useContext, useEffect, useRef, useState } from 'react';
+import { createContext, useContext } from 'react';
 import { useMakeOnce } from './utils';
-import { proxy, ref } from 'valtio';
+import { proxy, ref, useSnapshot } from 'valtio';
+import { DeepResolveType } from 'valtio/vanilla';
 
 export class RootStore {
-  character: Character = new Character();
+  character: Character = Character.create();
   loader = createLoader();
+  keyboardStore = proxy({
+    right: KeyState.create('ArrowRight'),
+    left: KeyState.create('ArrowLeft'),
+  });
   static create() {
     return proxy(new RootStore());
   }
-  private constructor() {
+  private constructor() {}
+}
+
+class KeyState {
+  isPressed = false;
+  static create(name: string) {
+    const newKeyState = proxy(new KeyState());
+    const keydownListener = (event: KeyboardEvent) => {
+      if (event.key === name) {
+        newKeyState.isPressed = true;
+      }
+    };
+    const keyupListener = (event: KeyboardEvent) => {
+      if (event.key === name) {
+        newKeyState.isPressed = false;
+      }
+    };
+    window.addEventListener('keydown', keydownListener);
+    window.addEventListener('keyup', keyupListener);
+    return newKeyState;
   }
+  private constructor() {}
 }
 
 class Character {
+  static create() {
+    return proxy(new Character());
+  }
+  private constructor() {
+  }
+  dispose() {
+    throw new Error('not implemented');
+  }
 }
 
 export interface GameContext {
@@ -22,6 +55,9 @@ export interface GameContext {
 const gameContext = createContext<GameContext>('what' as any);
 export const useGameContext = (): GameContext => {
   return useContext(gameContext);
+};
+export const useStore = (): DeepResolveType<RootStore> => {
+  return useSnapshot(useGameContext().rootStore);
 };
 
 export const GameContextProvider: React.FC = (props) => {

@@ -45,7 +45,6 @@ export default function ComponentWrapper() {
 }
 
 function Game() {
-  const { rootStore } = useGameContext();
   return (
     <>
       <KeyboardControlPosition>
@@ -53,7 +52,6 @@ function Game() {
           <KeenCharacter
             position={position}
             characterState={characterState}
-            rootStore={rootStore}
           />
         )}
       </KeyboardControlPosition>
