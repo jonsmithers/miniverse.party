@@ -1,7 +1,7 @@
 import { AnimatedSprite, Container, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { useMemo, useRef, useState } from 'react';
-import { useStore } from './GameContext';
+import { useStore } from './GameContextProvider';
 
 const CharacterStates = [
   'runRight',
