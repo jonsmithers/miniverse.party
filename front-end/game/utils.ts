@@ -1,11 +1,18 @@
-import { useTick } from "@inlet/react-pixi";
-import { useEffect, useState } from "react";
+import { useTick } from '@inlet/react-pixi';
+import { useEffect, useState } from 'react';
 
 /**
  * @return - speculated value
  */
-export function useSpeculation<T>(baseValue: T, speculate: (baseValue: T, millisElapsed: number) => T): T {
-  const [state, setState] = useState<InternalState<T>>(() => ({ speculatedValue: baseValue, baseValue, baseTimestamp: performance.now() }));
+export function useSpeculation<T>(
+  baseValue: T,
+  speculate: (baseValue: T, millisElapsed: number) => T,
+): T {
+  const [state, setState] = useState<InternalState<T>>(() => ({
+    speculatedValue: baseValue,
+    baseValue,
+    baseTimestamp: performance.now(),
+  }));
 
   useEffect(() => {
     setState({
@@ -16,16 +23,19 @@ export function useSpeculation<T>(baseValue: T, speculate: (baseValue: T, millis
   }, [baseValue]);
 
   useEffect(() => {
-    setState(old => ({
+    setState((old) => ({
       ...old,
       baseValue: old.speculatedValue,
     }));
-  }, [speculate])
+  }, [speculate]);
 
   useTick(() => {
-    setState(old => ({
+    setState((old) => ({
       ...old,
-      speculatedValue: speculate(old.baseValue, performance.now() - old.baseTimestamp),
+      speculatedValue: speculate(
+        old.baseValue,
+        performance.now() - old.baseTimestamp,
+      ),
     }));
   });
 
@@ -55,7 +65,7 @@ export function useKeyState(name: KeyboardEvent['key']): boolean {
     return () => {
       window.removeEventListener('keydown', keydownListener);
       window.removeEventListener('keyup', keyupListener);
-    }
+    };
   }, [name]);
   return isPressed;
 }

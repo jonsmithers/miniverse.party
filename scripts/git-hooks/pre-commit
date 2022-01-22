@@ -7,3 +7,4 @@ set -e -x
 
 ws-server/scripts/formatcheck
 ( cd front-end; npm run lint; )
+front-end/scripts/formatcheck

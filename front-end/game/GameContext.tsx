@@ -1,5 +1,11 @@
-import * as PIXI from 'pixi.js'
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import * as PIXI from 'pixi.js';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+} from 'react';
 
 export interface GameContext {
   loader: PIXI.Loader | 'still loading';
@@ -12,12 +18,12 @@ export interface GameContext {
       direction: number;
       velocity: number;
     }[];
-  }
+  };
 }
 const gameContext = createContext<GameContext>('what' as any);
 export const useGameContext = (): GameContext => {
   return useContext(gameContext);
-}
+};
 
 export const GameContextProvider: React.FC = (props) => {
   const [gameState, setGameState] = useState<GameContext>(() => ({
@@ -30,11 +36,14 @@ export const GameContextProvider: React.FC = (props) => {
         /** in degrees from North? */
         direction: 0,
         velocity: 0,
-      }]},
+      }],
+    },
   }));
 
   useEffect(() => {
-    createLoader().then(loader => setGameState(old => ({...old, loader })));
+    createLoader().then((loader) =>
+      setGameState((old) => ({ ...old, loader }))
+    );
   }, []);
 
   return (
@@ -45,7 +54,7 @@ export const GameContextProvider: React.FC = (props) => {
 };
 
 function createLoader(): Promise<PIXI.Loader> {
-  const loader: PIXI.Loader = new PIXI.Loader()
+  const loader: PIXI.Loader = new PIXI.Loader();
   loader.add('keen', '/game-assets/keen.json');
   loader.load((_, resources) => {
     console.log('resources', resources);
@@ -55,14 +64,14 @@ function createLoader(): Promise<PIXI.Loader> {
     loader.onError.add(reject);
   });
   resourceLoadPromise
-  .then(() => console.log('successfully loaded resources'))
-  .catch((e) => console.error('error loading game resource:', e));
+    .then(() => console.log('successfully loaded resources'))
+    .catch((e) => console.error('error loading game resource:', e));
   return resourceLoadPromise;
 }
 
 function useLoader(): GameContext['loader'] {
   const [maybeLoader, setLoader] = useState<GameContext['loader']>(() => {
-    const loader: PIXI.Loader = new PIXI.Loader()
+    const loader: PIXI.Loader = new PIXI.Loader();
     loader.add('keen', '/game-assets/keen.json');
     loader.load((_, resources) => {
       console.log('resources', resources);
@@ -74,7 +83,7 @@ function useLoader(): GameContext['loader'] {
     resourceLoadPromise
       .then(() => console.log('successfully loaded resources'))
       .catch((e) => console.error('error loading game resource:', e));
-    resourceLoadPromise.then(x => setLoader(x));
+    resourceLoadPromise.then((x) => setLoader(x));
     return 'still loading' as const;
   });
   console.log('maybeLoader', maybeLoader);
