@@ -1,18 +1,15 @@
 import * as PIXI from 'pixi.js';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
-import { makeAutoObservable } from 'mobx';
 import { useMakeOnce } from './utils';
+import { proxy, ref } from 'valtio';
 
 export class RootStore {
-  loader: PIXI.Loader | 'still loading';
-  character: Character;
-  constructor() {
-    makeAutoObservable(this);
-    this.loader = 'still loading';
-    this.character = new Character();
+  character: Character = new Character();
+  loader = createLoader();
+  static create() {
+    return proxy(new RootStore());
   }
-  get myCharacter() {
-    return this.character;
+  private constructor() {
   }
 }
 
@@ -28,15 +25,7 @@ export const useGameContext = (): GameContext => {
 };
 
 export const GameContextProvider: React.FC = (props) => {
-  const rootStore = useMakeOnce(() => new RootStore());
-
-  // TODO move this into constructor of RootStore
-  // TODO maybe render Suspense when loader is not present
-  useEffect(() => {
-    createLoader().then((loader) => {
-      rootStore.loader = loader;
-    });
-  }, [rootStore]);
+  const rootStore = useMakeOnce(() => RootStore.create());
 
   return (
     <gameContext.Provider value={{ rootStore }}>
@@ -45,7 +34,7 @@ export const GameContextProvider: React.FC = (props) => {
   );
 };
 
-function createLoader(): Promise<PIXI.Loader> {
+function createLoader() {
   const loader: PIXI.Loader = new PIXI.Loader();
   loader.add('keen', '/game-assets/keen.json');
   loader.load((_, resources) => {
@@ -58,5 +47,5 @@ function createLoader(): Promise<PIXI.Loader> {
   resourceLoadPromise
     .then(() => console.log('successfully loaded resources'))
     .catch((e) => console.error('error loading game resource:', e));
-  return resourceLoadPromise;
+  return resourceLoadPromise.then((loader) => ref(loader));
 }

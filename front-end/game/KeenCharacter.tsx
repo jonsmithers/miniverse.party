@@ -1,7 +1,8 @@
 import { AnimatedSprite, Container, useTick } from '@inlet/react-pixi';
-import { observer } from 'mobx-react-lite';
 import * as PIXI from 'pixi.js';
 import { useMemo, useRef, useState } from 'react';
+import { useSnapshot } from 'valtio';
+import { DeepResolveType } from 'valtio/vanilla';
 import { RootStore, useGameContext } from './GameContext';
 import { useKeyState } from './utils';
 
@@ -16,29 +17,19 @@ type CharacterState = typeof CharacterStates[number];
 export const KeenCharacter: React.FC<{
   position: [number, number];
   characterState: CharacterState;
-  rootStore: RootStore;
-}> = observer((props) => {
-  const loader = props.rootStore.loader;
-  // TODO throw promise if not loaded yet
+}> = ((props) => {
+  const snap = useSnapshot(useGameContext().rootStore);
+  const keenSpritesheet = snap.loader.resources.keen.spritesheet!;
 
-  const keenSpritesheet = useMemo(
-    () =>
-      loader === 'still loading'
-        ? undefined
-        : loader.resources.keen.spritesheet,
-    [loader],
-  );
-  const spriteMap:
-    | undefined
-    | {
-      [i in CharacterState]: PIXI.Texture<PIXI.Resource>[];
-    } = useMemo(() =>
-      keenSpritesheet && ({
-        runRight: keenSpritesheet.animations['run right '],
-        runLeft: keenSpritesheet.animations['run left '],
-        standRight: [keenSpritesheet.textures['standing.png']],
-        standLeft: [keenSpritesheet.textures['stand left.png']],
-      }), [keenSpritesheet]);
+  const spriteMap: {
+    [i in CharacterState]: PIXI.Texture<PIXI.Resource>[];
+  } = useMemo(() =>
+    keenSpritesheet && ({
+      runRight: keenSpritesheet.animations['run right '],
+      runLeft: keenSpritesheet.animations['run left '],
+      standRight: [keenSpritesheet.textures['standing.png']],
+      standLeft: [keenSpritesheet.textures['stand left.png']],
+    }), [keenSpritesheet]);
 
   const textures = useMemo(() => spriteMap?.[props.characterState], [
     props.characterState,
