@@ -9,11 +9,14 @@ export class Connection {
     this.ws.close();
   }
   static openNew(): Connection {
+    const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
+    if (!websocketUrl) {
+      throw new Error('missing variable NEXT_PUBLIC_WEBSOCKET_URL');
+    }
     const room = 1;
     const userId = Math.random();
     const ws = new WebSocket(
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      `${process.env.NEXT_PUBLIC_WEBSOCKET_URL!}?userId=${userId}&room=${room}`,
+      `${websocketUrl}?userId=${userId}&room=${room}`,
     );
     return new Connection({ ws, userId });
   }
