@@ -1,5 +1,6 @@
 import * as PIXI from 'pixi.js';
 import { proxy, ref } from 'valtio';
+import { Connection } from './websocket';
 
 export class RootStore {
   character: Character = Character.create();
@@ -8,6 +9,7 @@ export class RootStore {
     right: KeyState.create('ArrowRight'),
     left: KeyState.create('ArrowLeft'),
   });
+  connection = Connection.openNew();
   static create() {
     return proxy(new RootStore());
   }

@@ -1,12 +1,10 @@
 import { Container, Stage, Text } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
-import { Suspense, useState } from 'react';
+import { Suspense } from 'react';
 import { GameContextProvider } from './GameContext';
 import { KeenCharacter, KeyboardControlPosition } from './KeenCharacter';
-import { Connection } from './websocket';
 
 export default function ComponentWrapper() {
-  const [_connection] = useState(() => Connection.openNew());
   return (
     <Stage width={300} height={300} options={{ backgroundColor: 0xeef1f5 }}>
       <Suspense
