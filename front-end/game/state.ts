@@ -1,4 +1,10 @@
-import { configureStore, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import {
+  AnyAction,
+  configureStore,
+  createSlice,
+  Dispatch,
+  PayloadAction,
+} from '@reduxjs/toolkit';
 import * as PIXI from 'pixi.js';
 import {
   TypedUseSelectorHook,
@@ -8,7 +14,7 @@ import {
 } from 'react-redux';
 import { proxy, ref } from 'valtio';
 import { CharacterState } from './KeenCharacter';
-import { Position } from './shared-types';
+import { Position } from './sharedTypes';
 import { toRadians } from './utils';
 
 interface Character {
@@ -76,26 +82,8 @@ export const createReduxStore = () => {
       keystate: keyStateSlice.reducer,
     },
   });
-  {
-    const keydownListener = (event: KeyboardEvent) => {
-      store.dispatch(keyStateSlice.actions.add(event.key));
-    };
-    const keyupListener = (event: KeyboardEvent) => {
-      store.dispatch(keyStateSlice.actions.remove(event.key));
-    };
-    window.addEventListener('keydown', keydownListener);
-    window.addEventListener('keyup', keyupListener);
-  }
 
-  // TODO publish things to websocket
-  // const connection = Connection.openNew();
-  // const previousStateRef = { current: store.getState() };
-  // const _unsubscribe = store.subscribe(() => {
-  //   const previousState = previousStateRef.current;
-  //   const currentState = store.getState();
-  //   previousStateRef.current = currentState;
-  // });
-
+  keyStateSlice.connect(store.dispatch);
   return store;
 };
 
@@ -110,7 +98,8 @@ export const useStore = () => untypedUseStore<ReduxStoreState>();
 
 function createKeyStateSlice() {
   const initialState: { [index: KeyboardEvent['key']]: true } = {};
-  return createSlice({
+
+  const slice = createSlice({
     name: 'pressed-keys',
     initialState,
     reducers: {
@@ -122,6 +111,20 @@ function createKeyStateSlice() {
       },
     },
   });
+
+  return {
+    reducer: slice.reducer,
+    connect(dispatch: Dispatch<AnyAction>) {
+      const keydownListener = (event: KeyboardEvent) => {
+        dispatch(slice.actions.add(event.key));
+      };
+      const keyupListener = (event: KeyboardEvent) => {
+        dispatch(slice.actions.remove(event.key));
+      };
+      window.addEventListener('keydown', keydownListener);
+      window.addEventListener('keyup', keyupListener);
+    },
+  };
 }
 
 export class RootStore {
