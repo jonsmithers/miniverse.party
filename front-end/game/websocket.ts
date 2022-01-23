@@ -15,7 +15,7 @@ export class Connection {
       type: 'move',
       userId: this.userId,
     };
-    (await this.ws).send(JSON.stringify(message));
+    (await this.ws).send(JSON.stringify([message]));
   }
   async close() {
     (await this.ws).close();

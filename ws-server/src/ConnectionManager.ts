@@ -12,23 +12,16 @@ class Connection {
   ws: WebSocket;
   userId: number;
   room: number;
-  messageBuffer: Message[] = [];
   constructor(props: ConnectionProps) {
     this.userId = props.userId;
     this.room = props.room;
     this.ws = props.ws;
-    this.ws.onmessage = (messageEvent) => {
-      if (typeof messageEvent.data !== 'string') {
-        throw new Error('expected string, not ' + typeof messageEvent.data);
-      }
-      // JSON.parse can throw exceptions too
-      console.log(`${this.userId} says`, JSON.parse(messageEvent.data));
-    };
   }
 }
 
 export class ConnectionManager {
   connections: Map<number, Connection> = new Map();
+  messageBuffer: Message[] = [];
   add(props: ConnectionProps) {
     if (this.connections.has(props.userId)) {
       throw createHttpError(
@@ -36,6 +29,30 @@ export class ConnectionManager {
         'this user already has a connection?',
       );
     }
-    this.connections.set(props.userId, new Connection(props));
+    const newConnection = new Connection(props);
+    newConnection.ws.onmessage = (messageEvent) => {
+      try {
+        JSON.parse(messageEvent.data).forEach((message: Message) => {
+          this.bufferMessage(message);
+        });
+        this.publishBufferedMessages();
+      } catch (e) {
+        console.error('oh dear...', e);
+      }
+    };
+    this.connections.set(props.userId, newConnection);
+  }
+  bufferMessage(message: Message) {
+    this.messageBuffer.push(message);
+  }
+  publishBufferedMessages() {
+    if (!this.messageBuffer.length) {
+      return;
+    }
+    const messageBufferStr = JSON.stringify(this.messageBuffer);
+    for (const connection of this.connections.values()) {
+      connection.ws.send(messageBufferStr);
+    }
+    this.messageBuffer = [];
   }
 }
