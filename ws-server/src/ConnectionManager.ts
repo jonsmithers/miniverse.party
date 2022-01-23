@@ -21,7 +21,7 @@ class Connection {
 
 export class ConnectionManager {
   connections: Map<number, Connection> = new Map();
-  messageBuffer: Message[] = [];
+  messageBuffers: Map<number, Message[]> = new Map();
   add(props: ConnectionProps) {
     if (this.connections.has(props.userId)) {
       throw createHttpError(
@@ -33,26 +33,36 @@ export class ConnectionManager {
     newConnection.ws.onmessage = (messageEvent) => {
       try {
         JSON.parse(messageEvent.data).forEach((message: Message) => {
-          this.bufferMessage(message);
+          this.bufferMessage(props.room, message);
         });
-        this.publishBufferedMessages();
+        this.publishBufferedMessages(props.room);
       } catch (e) {
-        console.error('oh dear...', e);
+        console.error('unable to receive message...', e);
       }
     };
     this.connections.set(props.userId, newConnection);
   }
-  bufferMessage(message: Message) {
-    this.messageBuffer.push(message);
+  bufferMessage(room: number, message: Message) {
+    if (!this.messageBuffers.has(room)) {
+      this.messageBuffers.set(room, []);
+    }
+    this.messageBuffers.get(room)!.push(message);
   }
-  publishBufferedMessages() {
-    if (!this.messageBuffer.length) {
+  publishBufferedMessages(room: number) {
+    const messageBuffer = this.messageBuffers.get(room);
+    if (!messageBuffer?.length) {
       return;
     }
-    const messageBufferStr = JSON.stringify(this.messageBuffer);
+    const messageBufferStr = JSON.stringify(messageBuffer);
     for (const connection of this.connections.values()) {
-      connection.ws.send(messageBufferStr);
+      try {
+        connection.ws.send(messageBufferStr);
+      } catch (e) {
+        console.error('unable to send message...', e);
+        console.log(`kicking ${connection.userId}`);
+        this.connections.delete(connection.userId);
+      }
     }
-    this.messageBuffer = [];
+    this.messageBuffers.delete(room);
   }
 }
