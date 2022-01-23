@@ -8,6 +8,7 @@ import {
 } from 'react-redux';
 import { proxy, ref } from 'valtio';
 import { CharacterState } from './KeenCharacter';
+import { Position } from './shared-types';
 import { toRadians } from './utils';
 
 interface Character {
@@ -130,14 +131,6 @@ export class RootStore {
   }
   private constructor() {}
 }
-
-/**
- * [x, y]
- *
- * Top-left is [0,0]. So x++ moves right, and y++
- * moves down.
- */
-export type Position = [number, number];
 
 async function createLoader() {
   const loader: PIXI.Loader = new PIXI.Loader();

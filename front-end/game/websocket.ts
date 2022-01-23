@@ -1,13 +1,5 @@
-import { Position } from './state';
+import { Message, Position } from './sharedTypes';
 
-interface MoveEvent {
-  userId: number;
-  position: Position;
-  /** radians from north */
-  direction: number;
-  /** distance units per millisecond */
-  velocity: number;
-}
 export class Connection {
   ws: Promise<WebSocket>;
   userId: number;
@@ -15,11 +7,15 @@ export class Connection {
     this.ws = props.ws;
     this.userId = props.userId;
   }
-  async publishMovement(movement: Omit<MoveEvent, 'userId'>) {
-    (await this.ws).send(JSON.stringify({
+  async publishMovement(
+    movement: { position: Position; direction: number; velocity: number },
+  ) {
+    const message: Message = {
       ...movement,
+      type: 'move',
       userId: this.userId,
-    }));
+    };
+    (await this.ws).send(JSON.stringify(message));
   }
   async close() {
     (await this.ws).close();

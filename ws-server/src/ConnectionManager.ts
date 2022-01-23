@@ -1,11 +1,6 @@
 import { Status } from 'https://deno.land/x/oak/mod.ts';
 import { createHttpError } from 'https://deno.land/x/oak@v10.1.0/httpError.ts';
-
-type Message = {
-  type: 'position update';
-} | {
-  type: 'or something I guess I dunno';
-};
+import { Message } from './sharedTypes.ts';
 
 interface ConnectionProps {
   userId: number;
@@ -17,8 +12,7 @@ class Connection {
   ws: WebSocket;
   userId: number;
   room: number;
-  /** Just for debugging. This should be deleted to avoid memory leak */
-  receivedMessages: Message[] = [];
+  messageBuffer: Message[] = [];
   constructor(props: ConnectionProps) {
     this.userId = props.userId;
     this.room = props.room;
