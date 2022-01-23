@@ -6,16 +6,25 @@ import {
   useSelector as untypedUsedSelector,
 } from 'react-redux';
 import { proxy, ref } from 'valtio';
-import { CharacterState, VELOCITY_LEFT, VELOCITY_RIGHT } from './KeenCharacter';
+import { CharacterState } from './KeenCharacter';
+import { toRadians } from './utils';
 
-interface Character2 {
+interface Character {
   position: Position;
   state: CharacterState;
+  facing: 'left' | 'right';
+  direction: number;
+  velocity: number;
   positionTimestamp: number;
 }
-const initialCharacter: Character2 = {
+const initialCharacter: Character = {
   position: [0, 0],
   state: 'standRight',
+  /** radians from north */
+  direction: 90 * (Math.PI / 180),
+  facing: 'right',
+  /** distance units per millisecond */
+  velocity: 0,
   positionTimestamp: performance.now(),
 };
 const characterSlice = createSlice({
@@ -24,26 +33,32 @@ const characterSlice = createSlice({
   reducers: {
     move(
       state,
-      action: PayloadAction<{ elapsed: number; direction: 'right' | 'left' }>,
+      action: PayloadAction<{ elapsed: number; direction: number }>,
     ) {
-      const moveFnc = action.payload.direction === 'right'
-        ? VELOCITY_RIGHT
-        : VELOCITY_LEFT;
-      state.state = action.payload.direction === 'right'
-        ? 'runRight'
-        : 'runLeft';
-      state.position = moveFnc(state.position, action.payload.elapsed);
+      const { direction, elapsed } = action.payload;
+      state.direction = direction;
+      if (0 < state.direction && state.direction < toRadians(180)) {
+        state.facing = 'right';
+      } else if (
+        toRadians(180) < state.direction && state.direction < toRadians(360)
+      ) {
+        state.facing = 'left';
+      }
+      state.state = state.facing === 'right' ? 'runRight' : 'runLeft';
+      state.velocity = 1 / 6;
+      const distance = state.velocity * elapsed;
+      // negative because y==0 is North
+      const yDelta = -Math.cos(state.direction) * distance;
+      const xDelta = Math.sin(state.direction) * distance;
+      let [x, y] = state.position;
+      x += xDelta;
+      y += yDelta;
+      state.position = [x, y];
       state.positionTimestamp = performance.now();
     },
     idle(state) {
-      switch (state.state) {
-        case 'runRight':
-          state.state = 'standRight';
-          break;
-        default:
-          state.state = 'standLeft';
-          break;
-      }
+      state.velocity = 0;
+      state.state = state.facing === 'right' ? 'standRight' : 'standLeft';
     },
   },
 });
@@ -69,8 +84,19 @@ export const createReduxStore = () => {
     window.addEventListener('keydown', keydownListener);
     window.addEventListener('keyup', keyupListener);
   }
+
+  // TODO publish things to websocket
+  // const connection = Connection.openNew();
+  // const previousStateRef = { current: store.getState() };
+  // const _unsubscribe = store.subscribe(() => {
+  //   const previousState = previousStateRef.current;
+  //   const currentState = store.getState();
+  //   previousStateRef.current = currentState;
+  // });
+
   return store;
 };
+
 type ReduxStoreState = ReturnType<
   ReturnType<typeof createReduxStore>['getState']
 >;

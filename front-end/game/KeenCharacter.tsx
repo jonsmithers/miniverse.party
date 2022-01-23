@@ -1,7 +1,7 @@
 import { AnimatedSprite, Container } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { useMemo, useRef } from 'react';
-import { useStore } from './GameContextProvider';
+import { useValtioStore } from './GameContextProvider';
 
 const CharacterStates = [
   'runRight',
@@ -15,7 +15,7 @@ export const KeenCharacter: React.FC<{
   position: [number, number];
   characterState: CharacterState;
 }> = ((props) => {
-  const keenSpritesheet = useStore().loader.resources.keen.spritesheet;
+  const keenSpritesheet = useValtioStore().loader.resources.keen.spritesheet;
 
   if (keenSpritesheet === undefined) {
     throw new Error('unreachable');

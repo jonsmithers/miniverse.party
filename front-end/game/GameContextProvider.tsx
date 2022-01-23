@@ -13,7 +13,7 @@ const gameContext = createContext<GameContext>('jk' as unknown as GameContext);
 export const useGameContext = (): GameContext => {
   return useContext(gameContext);
 };
-export const useStore = (): DeepResolveType<RootStore> => {
+export const useValtioStore = (): DeepResolveType<RootStore> => {
   return useSnapshot(useGameContext().rootStore);
 };
 

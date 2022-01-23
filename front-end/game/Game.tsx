@@ -4,6 +4,7 @@ import { Suspense } from 'react';
 import { GameContextProvider } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
 import { characterActions, useDispatch, useSelector } from './state';
+import { toRadians } from './utils';
 
 export default function ComponentWrapper() {
   return (
@@ -49,12 +50,44 @@ function Game() {
   const keystate = useSelector((state) => state.keystate);
   const dispatch = useDispatch();
   useTick((_, { elapsedMS: elapsed }) => {
-    if (keystate['ArrowRight']) {
-      dispatch(characterActions.move({ direction: 'right', elapsed }));
-    } else if (keystate['ArrowLeft']) {
-      dispatch(characterActions.move({ direction: 'left', elapsed }));
-    } else {
+    const direction = (() => {
+      const right = keystate['ArrowRight'] || keystate['d'];
+      const left = keystate['ArrowLeft'] || keystate['a'];
+      const up = keystate['ArrowUp'] || keystate['w'];
+      const down = keystate['ArrowDown'] || keystate['s'];
+      if (right && left) {
+        return 0;
+      }
+      if (up && right) {
+        return toRadians(45);
+      }
+      if (right && down) {
+        return toRadians(135);
+      }
+      if (left && down) {
+        return toRadians(225);
+      }
+      if (left && up) {
+        return toRadians(315);
+      }
+      if (left) {
+        return toRadians(270);
+      }
+      if (right) {
+        return toRadians(90);
+      }
+      if (down) {
+        return toRadians(180);
+      }
+      if (up) {
+        return toRadians(0);
+      }
+      return undefined;
+    })();
+    if (direction === undefined) {
       dispatch(characterActions.idle());
+    } else {
+      dispatch(characterActions.move({ direction, elapsed }));
     }
   });
   return (

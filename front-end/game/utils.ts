@@ -75,3 +75,8 @@ export function useMakeOnce<T>(factory: () => T): T {
   t.current = t.current ?? factory();
   return t.current;
 }
+
+const TO_RADIANS = Math.PI / 180;
+export function toRadians(degrees: number) {
+  return degrees * TO_RADIANS;
+}
