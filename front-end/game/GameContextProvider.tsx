@@ -4,6 +4,7 @@ import { useSnapshot } from 'valtio';
 import { DeepResolveType } from 'valtio/vanilla';
 import { createReduxStore, RootStore } from './state';
 import { Provider } from 'react-redux';
+import { Connection } from './websocket';
 
 export interface GameContext {
   rootStore: RootStore;
@@ -17,11 +18,14 @@ export const useStore = (): DeepResolveType<RootStore> => {
 };
 
 export const GameContextProvider: React.FC = (props) => {
-  const rootStore = useMakeOnce(() => RootStore.create());
-
   return (
     <Provider store={useMakeOnce(() => createReduxStore())}>
-      <gameContext.Provider value={{ rootStore }}>
+      <gameContext.Provider
+        value={useMakeOnce(() => ({
+          rootStore: RootStore.create(),
+          connection: Connection.openNew(),
+        }))}
+      >
         {props.children}
       </gameContext.Provider>
     </Provider>

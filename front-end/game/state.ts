@@ -7,14 +7,6 @@ import {
 } from 'react-redux';
 import { proxy, ref } from 'valtio';
 import { CharacterState, VELOCITY_LEFT, VELOCITY_RIGHT } from './KeenCharacter';
-import { Connection } from './websocket';
-
-// interface LoaderState {
-//   loader: PIXI.Loader | 'still loading';
-// }
-// const initialLoaderState: LoaderState = {
-//   loader: 'still loading'
-// }
 
 interface Character2 {
   position: Position;
@@ -104,50 +96,11 @@ function createKeyStateSlice() {
 }
 
 export class RootStore {
-  character: Character = Character.create();
   loader = createLoader();
-  keyboardStore = proxy({
-    right: KeyState.create('ArrowRight'),
-    left: KeyState.create('ArrowLeft'),
-  });
-  connection = Connection.openNew();
   static create() {
     return proxy(new RootStore());
   }
   private constructor() {}
-}
-
-class KeyState {
-  isPressed = false;
-  static create(name: string) {
-    const newKeyState = proxy(new KeyState());
-    const keydownListener = (event: KeyboardEvent) => {
-      if (event.key === name) {
-        newKeyState.isPressed = true;
-      }
-    };
-    const keyupListener = (event: KeyboardEvent) => {
-      if (event.key === name) {
-        newKeyState.isPressed = false;
-      }
-    };
-    window.addEventListener('keydown', keydownListener);
-    window.addEventListener('keyup', keyupListener);
-    return newKeyState;
-  }
-  private constructor() {}
-}
-
-class Character {
-  position: Position = [0, 0];
-  static create() {
-    return proxy(new Character());
-  }
-  private constructor() {
-  }
-  dispose() {
-    throw new Error('not implemented');
-  }
 }
 
 /**

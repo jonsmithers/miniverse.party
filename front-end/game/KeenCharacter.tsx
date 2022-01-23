@@ -1,6 +1,6 @@
-import { AnimatedSprite, Container, useTick } from '@inlet/react-pixi';
+import { AnimatedSprite, Container } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useRef } from 'react';
 import { useStore } from './GameContextProvider';
 
 const CharacterStates = [
@@ -57,86 +57,6 @@ export const VELOCITY_LEFT = ([x, y]: [number, number], elapsed: number) =>
   [x - elapsed / 6, y] as [number, number];
 export const IDLE = ([x, y]: [number, number], _elapsed: number) =>
   [x, y] as [number, number];
-
-interface TimedPosition {
-  position: [number, number];
-  timestamp: number;
-}
-function useMovement(
-  initialPosition: [number, number],
-  moveFunc: ([x, y]: [number, number], elapsed: number) => [number, number],
-) {
-  const [timedPosition, setTimedPosition] = useState<TimedPosition>({
-    position: initialPosition,
-    timestamp: performance.now(),
-  });
-  const position = timedPosition.position;
-  useTick(() => {
-    setTimedPosition({
-      position: moveFunc(position, performance.now() - timedPosition.timestamp),
-      timestamp: performance.now(),
-    });
-  });
-  return [position];
-}
-
-// function useMovementControl() {
-//   const {rootStore} = useGameContext();
-//   const derivedMovement = useMakeOnce(() =>
-//     proxyWithComputed(rootStore, {
-//       movementFunc: (snap) => {
-//         if (snap.keyboardStore.right) {
-//           return VELOCITY_RIGHT;
-//         } else if (snap.keyboardStore.left) {
-//           return VELOCITY_LEFT;
-//         } else {
-//           return IDLE;
-//         }
-//       },
-//     })
-//   );
-//   const derivedState = useMakeOnce(() =>
-//     proxyWithComputed(derivedMovement, {
-//     })
-//   );
-//   const position = useStore().character.position;
-//   useTick(() => {
-//   });
-// }
-
-export function KeyboardControlPosition(
-  props: {
-    children(position: [number, number], state: CharacterState): JSX.Element;
-  },
-): JSX.Element {
-  const rightKeyPressed = useStore().keyboardStore.right.isPressed;
-  const leftKeyPressed = useStore().keyboardStore.left.isPressed;
-  const movementFunc = useMemo(() => {
-    if (rightKeyPressed) {
-      return VELOCITY_RIGHT;
-    } else if (leftKeyPressed) {
-      return VELOCITY_LEFT;
-    } else {
-      return IDLE;
-    }
-  }, [leftKeyPressed, rightKeyPressed]);
-  const characterState = useMemo(() => {
-    switch (movementFunc) {
-      case VELOCITY_RIGHT:
-        return 'runRight';
-      case VELOCITY_LEFT:
-        return 'runLeft';
-      default:
-        return 'standRight';
-    }
-  }, [movementFunc]);
-  const [position] = useMovement([0, 0], movementFunc);
-  return (
-    <>
-      {props.children(position, characterState)}
-    </>
-  );
-}
 
 /**
  * @param value - current value
