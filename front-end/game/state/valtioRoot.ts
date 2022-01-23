@@ -2,10 +2,10 @@ import * as PIXI from 'pixi.js';
 
 import { proxy, ref } from 'valtio';
 
-export class RootStore {
+export class ValtioRootStore {
   loader = createLoader();
   static create() {
-    return proxy(new RootStore());
+    return proxy(new ValtioRootStore());
   }
   private constructor() {}
 }
