@@ -3,7 +3,8 @@ import * as PIXI from 'pixi.js';
 import { Suspense, useEffect } from 'react';
 import { GameContextProvider, useGameContext } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
-import { characterActions, useDispatch, useSelector, useStore } from './state';
+import { useDispatch, useSelector, useStore } from './state';
+import { characterActions } from './state/character';
 import { toRadians } from './utils';
 
 export default function ComponentWrapper() {
@@ -47,7 +48,7 @@ export default function ComponentWrapper() {
 function useKeyboardController() {
   const position = useSelector((state) => state.character.position);
   const characterState = useSelector((state) => state.character.state);
-  const keystate = useSelector((state) => state.keystate);
+  const keystate = useSelector((state) => state.keyboard);
   const dispatch = useDispatch();
   useTick((_, { elapsedMS: elapsed }) => {
     const direction = (() => {
