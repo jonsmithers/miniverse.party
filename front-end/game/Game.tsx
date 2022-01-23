@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 import { Suspense, useEffect } from 'react';
 import { GameContextProvider, useGameContext } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
-import { useDispatch, useSelector, useStore } from './state';
+import { useDispatch, useSelector, useStore } from './state/rootStore';
 import { characterActions } from './state/character';
 import { toRadians } from './utils';
 

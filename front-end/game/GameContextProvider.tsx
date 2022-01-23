@@ -2,9 +2,10 @@ import { createContext, useContext } from 'react';
 import { useMakeOnce } from './utils';
 import { useSnapshot } from 'valtio';
 import { DeepResolveType } from 'valtio/vanilla';
-import { createReduxStore, RootStore } from './state';
+import { RootStore } from './state';
 import { Provider } from 'react-redux';
 import { Connection } from './websocket';
+import { createReduxStore } from './state/rootStore';
 
 export interface GameContext {
   rootStore: RootStore;
