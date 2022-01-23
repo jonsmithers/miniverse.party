@@ -2,7 +2,8 @@ import { createContext, useContext } from 'react';
 import { useMakeOnce } from './utils';
 import { useSnapshot } from 'valtio';
 import { DeepResolveType } from 'valtio/vanilla';
-import { RootStore } from './state';
+import { createReduxStore, RootStore } from './state';
+import { Provider } from 'react-redux';
 
 export interface GameContext {
   rootStore: RootStore;
@@ -19,8 +20,10 @@ export const GameContextProvider: React.FC = (props) => {
   const rootStore = useMakeOnce(() => RootStore.create());
 
   return (
-    <gameContext.Provider value={{ rootStore }}>
-      {props.children}
-    </gameContext.Provider>
+    <Provider store={useMakeOnce(() => createReduxStore())}>
+      <gameContext.Provider value={{ rootStore }}>
+        {props.children}
+      </gameContext.Provider>
+    </Provider>
   );
 };

@@ -9,7 +9,7 @@ const CharacterStates = [
   'standRight',
   'standLeft',
 ] as const;
-type CharacterState = typeof CharacterStates[number];
+export type CharacterState = typeof CharacterStates[number];
 
 export const KeenCharacter: React.FC<{
   position: [number, number];
@@ -51,11 +51,11 @@ export const KeenCharacter: React.FC<{
   );
 });
 
-const VELOCITY_RIGHT = ([x, y]: [number, number], elapsed: number) =>
+export const VELOCITY_RIGHT = ([x, y]: [number, number], elapsed: number) =>
   [x + elapsed / 6, y] as [number, number];
-const VELOCITY_LEFT = ([x, y]: [number, number], elapsed: number) =>
+export const VELOCITY_LEFT = ([x, y]: [number, number], elapsed: number) =>
   [x - elapsed / 6, y] as [number, number];
-const IDLE = ([x, y]: [number, number], _elapsed: number) =>
+export const IDLE = ([x, y]: [number, number], _elapsed: number) =>
   [x, y] as [number, number];
 
 interface TimedPosition {
@@ -79,6 +79,30 @@ function useMovement(
   });
   return [position];
 }
+
+// function useMovementControl() {
+//   const {rootStore} = useGameContext();
+//   const derivedMovement = useMakeOnce(() =>
+//     proxyWithComputed(rootStore, {
+//       movementFunc: (snap) => {
+//         if (snap.keyboardStore.right) {
+//           return VELOCITY_RIGHT;
+//         } else if (snap.keyboardStore.left) {
+//           return VELOCITY_LEFT;
+//         } else {
+//           return IDLE;
+//         }
+//       },
+//     })
+//   );
+//   const derivedState = useMakeOnce(() =>
+//     proxyWithComputed(derivedMovement, {
+//     })
+//   );
+//   const position = useStore().character.position;
+//   useTick(() => {
+//   });
+// }
 
 export function KeyboardControlPosition(
   props: {
