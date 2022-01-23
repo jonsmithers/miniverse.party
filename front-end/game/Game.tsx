@@ -1,9 +1,9 @@
 import { Stage, Text, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
-import { Suspense } from 'react';
-import { GameContextProvider } from './GameContextProvider';
+import { Suspense, useEffect } from 'react';
+import { GameContextProvider, useGameContext } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
-import { characterActions, useDispatch, useSelector } from './state';
+import { characterActions, useDispatch, useSelector, useStore } from './state';
 import { toRadians } from './utils';
 
 export default function ComponentWrapper() {
@@ -44,7 +44,7 @@ export default function ComponentWrapper() {
   );
 }
 
-function Game() {
+function useKeyboardController() {
   const position = useSelector((state) => state.character.position);
   const characterState = useSelector((state) => state.character.state);
   const keystate = useSelector((state) => state.keystate);
@@ -90,8 +90,29 @@ function Game() {
       dispatch(characterActions.move({ direction, elapsed }));
     }
   });
+  return { position, characterState };
+}
+
+function EventPublisher() {
+  const store = useStore();
+  const { connection } = useGameContext();
+  const direction = useSelector((store) => store.character.direction);
+  const velocity = useSelector((store) => store.character.velocity);
+  useEffect(() => {
+    connection.publishMovement({
+      position: store.getState().character.position,
+      direction,
+      velocity,
+    });
+  }, [connection, direction, velocity, store]);
+  return <></>;
+}
+
+function Game() {
+  const { position, characterState } = useKeyboardController();
   return (
     <>
+      <EventPublisher />
       <KeenCharacter
         position={position}
         characterState={characterState}

@@ -4,6 +4,7 @@ import {
   TypedUseSelectorHook,
   useDispatch as untypedUseDispatch,
   useSelector as untypedUsedSelector,
+  useStore as untypedUseStore,
 } from 'react-redux';
 import { proxy, ref } from 'valtio';
 import { CharacterState } from './KeenCharacter';
@@ -104,6 +105,7 @@ type ReduxStoreDispatch = ReturnType<typeof createReduxStore>['dispatch'];
 export const useSelector: TypedUseSelectorHook<ReduxStoreState> =
   untypedUsedSelector;
 export const useDispatch = () => untypedUseDispatch<ReduxStoreDispatch>();
+export const useStore = () => untypedUseStore<ReduxStoreState>();
 
 function createKeyStateSlice() {
   const initialState: { [index: KeyboardEvent['key']]: true } = {};

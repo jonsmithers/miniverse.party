@@ -8,6 +8,7 @@ import { Connection } from './websocket';
 
 export interface GameContext {
   rootStore: RootStore;
+  connection: Connection;
 }
 const gameContext = createContext<GameContext>('jk' as unknown as GameContext);
 export const useGameContext = (): GameContext => {
