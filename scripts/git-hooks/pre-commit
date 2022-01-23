@@ -3,8 +3,8 @@
 cd "$(dirname "$0")"
 cd "$(git rev-parse --show-toplevel)"
 
-set -e -x
-
-ws-server/scripts/formatcheck
-( cd front-end; npm run lint; )
-front-end/scripts/formatcheck
+( set -e -x; scripts/check-code; ) || {
+  echo
+  echo "👉 Run \"scripts/check-code --fix\"";
+  exit 1;
+}

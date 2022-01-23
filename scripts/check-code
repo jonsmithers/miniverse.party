@@ -1,0 +1,47 @@
+#! /bin/bash
+cd "$(dirname "$0")"
+cd "$(git rev-parse --show-toplevel)"
+
+# Note: this COULD be a deno script by using this shebang:
+#     #! /usr/bin/env -S deno run --allow-whatevs
+
+maybe_fix=
+maybe_check=--check
+
+while :; do
+  case $1 in
+    --fix)
+      maybe_fix=--fix
+      maybe_check=
+      shift
+      ;;
+    -?*)
+      printf 'Unknown option: %s\n' "$1" >&2
+      exit 1
+      ;;
+    *)
+      break
+  esac
+done
+
+shopt -s extglob; GLOBIGNORE='node_modules/*';
+frontend_files='front-end/*.ts?(x) front-end/**/*.ts?(x)'
+server_files=ws-server/src/*.ts
+shared_files=shared-types/*.ts
+
+set -e -x
+deno fmt --options-single-quote $maybe_check $server_files
+deno fmt --options-single-quote $maybe_check $shared_files
+deno fmt --options-single-quote $maybe_check $frontend_files
+deno lint --config scripts/config-formatter.json $server_files
+deno lint --config scripts/config-formatter.json $shared_files
+
+# deno lint --config scripts/config-formatter.json \
+#   --rules-exclude='no-window-prefix' \
+#   --rules-include='no-unused-vars' \
+#   $frontend_files
+
+(
+  cd front-end;
+  npm run lint $maybe_fix
+)

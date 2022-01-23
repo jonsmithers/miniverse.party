@@ -1,15 +1,17 @@
-export type Message = {
-  userId: number;
-} & ({
-  type: 'move';
-  position: Position;
-  /** radians from north */
-  direction: number;
-  /** distance units per millisecond */
-  velocity: number;
-} | {
-  type: 'nonsense';
-})
+export type Message =
+  & {
+    userId: number;
+  }
+  & ({
+    type: 'move';
+    position: Position;
+    /** radians from north */
+    direction: number;
+    /** distance units per millisecond */
+    velocity: number;
+  } | {
+    type: 'nonsense';
+  });
 
 /**
  * [x, y]
