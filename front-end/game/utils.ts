@@ -80,3 +80,6 @@ const TO_RADIANS = Math.PI / 180;
 export function toRadians(degrees: number) {
   return degrees * TO_RADIANS;
 }
+export function toDegrees(radians: number) {
+  return radians / TO_RADIANS;
+}

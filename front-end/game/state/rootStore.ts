@@ -1,6 +1,4 @@
 import { configureStore } from "@reduxjs/toolkit";
-import { characterReducer } from "./character";
-import { createKeyboardSlice } from "./keyboard";
 import {
   TypedUseSelectorHook,
   useDispatch as untypedUseDispatch,
@@ -8,30 +6,25 @@ import {
   useStore as untypedUseStore,
 } from 'react-redux';
 import { Connection } from "../websocket";
-import { createOtherPlayersSlice } from "./otherPlayers";
+import { createEverythingSlice } from "./everything";
 
 export const createReduxStore = (connection: Connection) => {
-  const keyboardSlice = createKeyboardSlice();
-  const otherPlayersSlice = createOtherPlayersSlice(connection);
 
+  const slice = createEverythingSlice(connection);
   const store = configureStore({
     reducer: {
-      character: characterReducer,
-      keyboard: keyboardSlice.reducer,
-      otherPlayers: otherPlayersSlice.reducer,
+      everything: slice.reducer,
     },
   });
 
-  keyboardSlice.connect(store.dispatch);
-  otherPlayersSlice.connect(store.dispatch);
-  return store;
+  slice.connectSlice(store.dispatch);
+  return { store, actions: slice.actions };
 };
 
 type ReduxStoreState = ReturnType<
-  ReturnType<typeof createReduxStore>['getState']
+  ReturnType<typeof createReduxStore>['store']['getState']
 >;
-type ReduxStoreDispatch = ReturnType<typeof createReduxStore>['dispatch'];
-export const useSelector: TypedUseSelectorHook<ReduxStoreState> =
-  untypedUsedSelector;
+type ReduxStoreDispatch = ReturnType<typeof createReduxStore>['store']['dispatch'];
+export const useSelector: TypedUseSelectorHook<ReduxStoreState> = untypedUsedSelector;
 export const useDispatch = () => untypedUseDispatch<ReduxStoreDispatch>();
 export const useStore = () => untypedUseStore<ReduxStoreState>();

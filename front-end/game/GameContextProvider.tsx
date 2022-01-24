@@ -10,6 +10,7 @@ import { ValtioRootStore } from './state/valtioRoot';
 export interface GameContext {
   rootStore: ValtioRootStore;
   connection: Connection;
+  actions: ReturnType<typeof createReduxStore>['actions'];
 }
 const gameContext = createContext<GameContext>('jk' as unknown as GameContext);
 export const useGameContext = (): GameContext => {
@@ -21,12 +22,14 @@ export const useValtioStore = (): DeepResolveType<ValtioRootStore> => {
 
 export const GameContextProvider: React.FC = (props) => {
   const connection = useMakeOnce(() => Connection.openNew());
+  const { store, actions } = useMakeOnce(() => createReduxStore(connection));
   return (
-    <Provider store={useMakeOnce(() => createReduxStore(connection))}>
+    <Provider store={store}>
       <gameContext.Provider
         value={useMakeOnce(() => ({
           rootStore: ValtioRootStore.create(),
           connection,
+          actions,
         }))}
       >
         {props.children}

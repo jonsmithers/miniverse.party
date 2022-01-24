@@ -1,11 +1,9 @@
 import { Stage, Text, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
-import { Suspense, useEffect } from 'react';
+import { Suspense, useEffect, useRef } from 'react';
 import { GameContextProvider, useGameContext } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
 import { useDispatch, useSelector } from './state/rootStore';
-import { characterActions } from './state/character';
-import { toRadians } from './utils';
 
 export default function ComponentWrapper() {
   return (
@@ -45,80 +43,30 @@ export default function ComponentWrapper() {
   );
 }
 
-function useKeyboardController() {
-  const position = useSelector((state) => state.character.position);
-  const characterState = useSelector((state) => state.character.state);
-  const keystate = useSelector((state) => state.keyboard);
-  const dispatch = useDispatch();
-  useTick((_, { elapsedMS: elapsed }) => {
-    const direction = (() => {
-      const right = keystate['ArrowRight'] || keystate['d'];
-      const left = keystate['ArrowLeft'] || keystate['a'];
-      const up = keystate['ArrowUp'] || keystate['w'];
-      const down = keystate['ArrowDown'] || keystate['s'];
-      if (right && left) {
-        return 0;
-      }
-      if (up && right) {
-        return toRadians(45);
-      }
-      if (right && down) {
-        return toRadians(135);
-      }
-      if (left && down) {
-        return toRadians(225);
-      }
-      if (left && up) {
-        return toRadians(315);
-      }
-      if (left) {
-        return toRadians(270);
-      }
-      if (right) {
-        return toRadians(90);
-      }
-      if (down) {
-        return toRadians(180);
-      }
-      if (up) {
-        return toRadians(0);
-      }
-      return undefined;
-    })();
-    if (direction === undefined) {
-      dispatch(characterActions.idle());
-    } else {
-      dispatch(characterActions.move({ direction, elapsed }));
-    }
-  });
-  return { position, characterState };
-}
-
 function EventPublisher() {
   const { connection } = useGameContext();
-  const { velocity, direction, position, facing, state } = useSelector((
-    store,
-  ) => store.character);
+  const myCharacter = useSelector((store) =>
+    store.everything.characters[store.everything.userId]
+  );
+  const { velocity, direction, state, position } = myCharacter;
+
+  const positionRef = useRef(position);
+  positionRef.current = position;
+
   useEffect(() => {
+    console.log('publish');
     connection.publishMovement({
       velocity,
       direction,
-      position,
-      facing,
       state,
+      position: positionRef.current,
     });
-  }, [velocity, direction, position, facing, state, connection]);
+  }, [velocity, direction, state, connection]);
   return <></>;
 }
 
-function Logger() {
-  // use this when you want to log something
-  useSelector((store) => store.otherPlayers.characters);
-  return <></>;
-}
-
-function OtherPlayers() {
-  const characters = useSelector((store) => store.otherPlayers.characters);
+function Characters() {
+  const characters = useSelector((store) => store.everything.characters);
   return (
     <>
       {Object.entries(characters).map(([userId, character]) => (
@@ -132,17 +80,21 @@ function OtherPlayers() {
   );
 }
 
+function Ticker() {
+  const { actions } = useGameContext();
+  const dispatch = useDispatch();
+  useTick((_, ticker) => {
+    dispatch(actions.tick({ elapsedMillis: ticker.elapsedMS }));
+  });
+  return <></>;
+}
+
 function Game() {
-  const { position, characterState } = useKeyboardController();
   return (
     <>
       <EventPublisher />
-      <Logger />
-      <KeenCharacter
-        position={position}
-        characterState={characterState}
-      />
-      <OtherPlayers />
+      <Characters />
+      <Ticker />
       <Text
         text='Hello World'
         anchor={0.5}

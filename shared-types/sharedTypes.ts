@@ -23,7 +23,6 @@ export interface MovementData {
   /** distance units per millisecond */
   velocity: number;
   state: CharacterState;
-  facing: 'left' | 'right';
 }
 
 export const CharacterStates = [

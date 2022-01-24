@@ -1,5 +1,4 @@
-import { Message } from './sharedTypes';
-import { MovementData } from './state/character';
+import { Message, MovementData } from './sharedTypes';
 
 export class Connection {
   ws: Promise<WebSocket>;
