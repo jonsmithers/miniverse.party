@@ -43,5 +43,6 @@ deno lint --config scripts/config-formatter.json $shared_files
 
 (
   cd front-end;
-  npm run lint $maybe_fix
+  npm run lint $maybe_fix;
+  npx tsc;
 )
