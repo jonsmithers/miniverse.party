@@ -37,6 +37,9 @@ export function createOtherPlayersSlice(connection: Connection) {
       connection.onMessage(message => {
         switch(message.type) {
           case 'move':
+            if (message.userId === connection.userId) {
+              return;
+            }
             dispatch(slice.actions.updateCharacter(message));
             return;
           default:
