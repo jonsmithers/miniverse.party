@@ -1,16 +1,17 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import { CharacterState } from "../KeenCharacter";
-import { Position } from "../sharedTypes";
+import { CharacterState, Position } from "../sharedTypes";
 import { toRadians } from "../utils";
 
-interface Character {
+export interface MovementData {
   position: Position;
-  state: CharacterState;
-  facing: 'left' | 'right';
   direction: number;
   velocity: number;
-  positionTimestamp: number;
+  state: CharacterState;
+  facing: 'left' | 'right';
 }
+export type Character = {
+  positionTimestamp: number;
+} & MovementData
 const initialCharacter: Character = {
   position: [0, 0],
   state: 'standRight',

@@ -20,12 +20,13 @@ export const useValtioStore = (): DeepResolveType<ValtioRootStore> => {
 };
 
 export const GameContextProvider: React.FC = (props) => {
+  const connection = useMakeOnce(() => Connection.openNew());
   return (
-    <Provider store={useMakeOnce(() => createReduxStore())}>
+    <Provider store={useMakeOnce(() => createReduxStore(connection))}>
       <gameContext.Provider
         value={useMakeOnce(() => ({
           rootStore: ValtioRootStore.create(),
-          connection: Connection.openNew(),
+          connection,
         }))}
       >
         {props.children}

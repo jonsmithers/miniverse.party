@@ -1,17 +1,38 @@
-export type Message =
-  & {
-    userId: number;
-  }
-  & ({
+type MessageWithoutUserId =
+  | ({
     type: 'move';
-    position: Position;
-    /** radians from north */
-    direction: number;
-    /** distance units per millisecond */
-    velocity: number;
-  } | {
+  } & MovementData)
+  | {
     type: 'nonsense';
-  });
+    because: 'this' | 'type';
+    has: ['a', 'different', 'payload'];
+  }
+  | {
+    type: 'other message type';
+    andSo: 'does this one';
+  };
+
+export type Message = MessageWithoutUserId & {
+  userId: number;
+};
+
+export interface MovementData {
+  position: Position;
+  /** radians from north */
+  direction: number;
+  /** distance units per millisecond */
+  velocity: number;
+  state: CharacterState;
+  facing: 'left' | 'right';
+}
+
+export const CharacterStates = [
+  'runRight',
+  'runLeft',
+  'standRight',
+  'standLeft',
+] as const;
+export type CharacterState = typeof CharacterStates[number];
 
 /**
  * [x, y]

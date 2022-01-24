@@ -1,4 +1,5 @@
-import { Message, Position } from './sharedTypes';
+import { Message } from './sharedTypes';
+import { MovementData } from './state/character';
 
 export class Connection {
   ws: Promise<WebSocket>;
@@ -8,7 +9,7 @@ export class Connection {
     this.userId = props.userId;
   }
   async publishMovement(
-    movement: { position: Position; direction: number; velocity: number },
+    movement: MovementData,
   ) {
     const message: Message = {
       ...movement,
@@ -19,6 +20,18 @@ export class Connection {
   }
   async close() {
     (await this.ws).close();
+  }
+  onMessage(listener: (m: Message) => void): () => void {
+    const wrappedListener = (m: MessageEvent) => {
+      JSON.parse(m.data).forEach((message: Message) => {
+        listener(message);
+      });
+    };
+    (this.ws).then((ws) => ws.addEventListener('message', wrappedListener));
+    return () =>
+      (this.ws).then((ws) =>
+        ws.removeEventListener('message', wrappedListener)
+      );
   }
   static openNew(): Connection {
     const websocketUrl = process.env.NEXT_PUBLIC_WEBSOCKET_URL;
@@ -31,7 +44,7 @@ export class Connection {
       const newWebSocket = new WebSocket(
         `${websocketUrl}?userId=${userId}&room=${room}`,
       );
-      newWebSocket.onopen = () => resolve(newWebSocket);
+      newWebSocket.addEventListener('open', () => resolve(newWebSocket));
     });
     return new Connection({ ws, userId });
   }

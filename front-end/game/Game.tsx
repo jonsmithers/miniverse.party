@@ -3,7 +3,7 @@ import * as PIXI from 'pixi.js';
 import { Suspense, useEffect } from 'react';
 import { GameContextProvider, useGameContext } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
-import { useDispatch, useSelector, useStore } from './state/rootStore';
+import { useDispatch, useSelector } from './state/rootStore';
 import { characterActions } from './state/character';
 import { toRadians } from './utils';
 
@@ -95,18 +95,41 @@ function useKeyboardController() {
 }
 
 function EventPublisher() {
-  const store = useStore();
   const { connection } = useGameContext();
-  const direction = useSelector((store) => store.character.direction);
-  const velocity = useSelector((store) => store.character.velocity);
+  const { velocity, direction, position, facing, state } = useSelector((
+    store,
+  ) => store.character);
   useEffect(() => {
     connection.publishMovement({
-      position: store.getState().character.position,
-      direction,
       velocity,
+      direction,
+      position,
+      facing,
+      state,
     });
-  }, [connection, direction, velocity, store]);
+  }, [velocity, direction, position, facing, state, connection]);
   return <></>;
+}
+
+function Logger() {
+  // use this when you want to log something
+  useSelector((store) => store.otherPlayers.characters);
+  return <></>;
+}
+
+function OtherPlayers() {
+  const characters = useSelector((store) => store.otherPlayers.characters);
+  return (
+    <>
+      {Object.entries(characters).map(([userId, character]) => (
+        <KeenCharacter
+          key={userId}
+          characterState={character.state}
+          position={character.position}
+        />
+      ))}
+    </>
+  );
 }
 
 function Game() {
@@ -114,10 +137,12 @@ function Game() {
   return (
     <>
       <EventPublisher />
+      <Logger />
       <KeenCharacter
         position={position}
         characterState={characterState}
       />
+      <OtherPlayers />
       <Text
         text='Hello World'
         anchor={0.5}

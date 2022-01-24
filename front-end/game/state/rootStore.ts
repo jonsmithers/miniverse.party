@@ -7,18 +7,23 @@ import {
   useSelector as untypedUsedSelector,
   useStore as untypedUseStore,
 } from 'react-redux';
+import { Connection } from "../websocket";
+import { createOtherPlayersSlice } from "./otherPlayers";
 
-export const createReduxStore = () => {
+export const createReduxStore = (connection: Connection) => {
   const keyboardSlice = createKeyboardSlice();
+  const otherPlayersSlice = createOtherPlayersSlice(connection);
 
   const store = configureStore({
     reducer: {
       character: characterReducer,
       keyboard: keyboardSlice.reducer,
+      otherPlayers: otherPlayersSlice.reducer,
     },
   });
 
   keyboardSlice.connect(store.dispatch);
+  otherPlayersSlice.connect(store.dispatch);
   return store;
 };
 

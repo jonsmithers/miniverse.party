@@ -2,14 +2,7 @@ import { AnimatedSprite, Container } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { useMemo, useRef } from 'react';
 import { useValtioStore } from './GameContextProvider';
-
-const CharacterStates = [
-  'runRight',
-  'runLeft',
-  'standRight',
-  'standLeft',
-] as const;
-export type CharacterState = typeof CharacterStates[number];
+import { CharacterState } from './sharedTypes';
 
 export const KeenCharacter: React.FC<{
   position: [number, number];
