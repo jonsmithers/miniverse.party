@@ -14,6 +14,43 @@ const SuspensePostHydration = function (props: SuspenseProps): JSX.Element {
   return postHydration ? <Suspense {...props} /> : <></>;
 };
 
+const PostHydration = function (
+  props: { children: () => React.ReactElement },
+): JSX.Element {
+  const [postHydration, setPostHydration] = useState(false);
+  useEffect(() => {
+    setPostHydration(true);
+  }, []);
+  return postHydration ? props.children() : <></>;
+};
+
+function MaybeFullscreenButton() {
+  const [isFullscreen, setFullscreen] = useState(false);
+  if (!Boolean(document.body.requestFullscreen)) {
+    return <></>;
+  }
+  return (
+    <>
+      {!isFullscreen && (
+        <button
+          onClick={() =>
+            document.body.requestFullscreen().then(() => setFullscreen(true))}
+        >
+          fullscreen
+        </button>
+      )}
+      {isFullscreen && (
+        <button
+          onClick={() =>
+            document.exitFullscreen().then(() => setFullscreen(false))}
+        >
+          leave fullscreen
+        </button>
+      )}
+    </>
+  );
+}
+
 const Home: NextPage = () => {
   return (
     <div className={styles.container}>
@@ -24,6 +61,9 @@ const Home: NextPage = () => {
       </Head>
 
       <main className={styles.main}>
+        <PostHydration>
+          {() => <MaybeFullscreenButton />}
+        </PostHydration>
         <SuspensePostHydration
           fallback={<h1>loading...</h1>}
         >

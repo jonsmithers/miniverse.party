@@ -89,6 +89,13 @@ function Ticker() {
 }
 
 function Game() {
+  useEffect(() => {
+    if (document.body.requestFullscreen) {
+      document.body.requestFullscreen().then(() => {
+        console.log('fullscreen!');
+      }).catch(console.error);
+    }
+  }, []);
   return (
     <>
       <EventPublisher />
