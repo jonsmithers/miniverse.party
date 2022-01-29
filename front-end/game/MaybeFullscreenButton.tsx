@@ -12,27 +12,20 @@ export default function MaybeFullscreenButton() {
       screenfull.off('change', onChange);
     };
   }, []);
-  if (!screenfull.isEnabled) {
-    return <></>;
-  }
   return (
-    <div
-      style={{
-        top: '0',
-        right: 0,
-        position: 'absolute',
-      }}
-    >
-      {!isFullscreen && (
-        <button onClick={() => screenfull.request()}>
+    <>
+      {screenfull.isEnabled && !isFullscreen && (
+        <button
+          onClick={() => screenfull.request()}
+          style={{
+            top: 0,
+            right: 0,
+            position: 'absolute',
+          }}
+        >
           fullscreen
         </button>
       )}
-      {isFullscreen && (
-        <button onClick={() => screenfull.exit()}>
-          leave fullscreen
-        </button>
-      )}
-    </div>
+    </>
   );
 }
