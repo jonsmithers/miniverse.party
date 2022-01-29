@@ -1,45 +1,62 @@
 import { Stage, Text, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import { Suspense, useEffect, useRef } from 'react';
+import { useResizeDetector } from 'react-resize-detector';
 import { GameContextProvider, useGameContext } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
 import { useDispatch, useSelector } from './state/rootStore';
 
 export default function ComponentWrapper() {
+  const { width, height, ref } = useResizeDetector();
   return (
-    <Stage width={300} height={300} options={{ backgroundColor: 0xeef1f5 }}>
-      <Suspense
-        fallback={
-          <Text
-            text='loading'
-            anchor={0.5}
-            x={150}
-            y={150}
-            style={new PIXI.TextStyle({
-              align: 'center',
-              fontFamily: '"Source Sans Pro", Helvetica, sans-serif',
-              fontSize: 50,
-              fontWeight: '400',
-              fill: ['#ffffff', '#00ff99'], // gradient
-              stroke: '#01d27e',
-              strokeThickness: 5,
-              letterSpacing: 20,
-              dropShadow: true,
-              dropShadowColor: '#ccced2',
-              dropShadowBlur: 4,
-              dropShadowAngle: Math.PI / 6,
-              dropShadowDistance: 6,
-              wordWrap: true,
-              wordWrapWidth: 440,
-            })}
-          />
-        }
+    <div
+      ref={ref}
+      style={{
+        overflow: 'hidden',
+        width: 800,
+        height: 600,
+        maxWidth: '100%',
+        maxHeight: '100%',
+      }}
+    >
+      <Stage
+        height={height}
+        width={width}
+        options={{ backgroundColor: 0xeef1f5 }}
       >
-        <GameContextProvider>
-          <Game />
-        </GameContextProvider>
-      </Suspense>
-    </Stage>
+        <Suspense
+          fallback={
+            <Text
+              text='loading'
+              anchor={0.5}
+              x={150}
+              y={150}
+              style={new PIXI.TextStyle({
+                align: 'center',
+                fontFamily: '"Source Sans Pro", Helvetica, sans-serif',
+                fontSize: 50,
+                fontWeight: '400',
+                fill: ['#ffffff', '#00ff99'], // gradient
+                stroke: '#01d27e',
+                strokeThickness: 5,
+                letterSpacing: 20,
+                dropShadow: true,
+                dropShadowColor: '#ccced2',
+                dropShadowBlur: 4,
+                dropShadowAngle: Math.PI / 6,
+                dropShadowDistance: 6,
+                wordWrap: true,
+                wordWrapWidth: 440,
+              })}
+            />
+          }
+        >
+          <GameContextProvider>
+            <Game />
+          </GameContextProvider>
+        </Suspense>
+      </Stage>
+    </div>
   );
 }
 
