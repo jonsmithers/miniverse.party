@@ -1,6 +1,6 @@
 import { AnyAction, createSlice, Dispatch, PayloadAction } from "@reduxjs/toolkit";
 import { CharacterState, MovementData, Position } from "../sharedTypes";
-import { toRadians } from "../utils";
+import { toDegrees, toRadians } from "../utils";
 import { Connection } from "../websocket";
 
 interface State {
@@ -49,6 +49,9 @@ export function createEverythingSlice(connection: Connection) {
           let [x, y] = character.position;
           x += xDelta;
           y += yDelta;
+          if (isNaN(x) || isNaN(y)) {
+            console.warn("NaN", { direction: character.direction, distance })
+          }
           character.position = [x, y];
         }
       },
@@ -64,6 +67,16 @@ export function createEverythingSlice(connection: Connection) {
       _setUserId(state, action: PayloadAction<number>) {
         state.userId = action.payload;
       },
+      _setMovingInDirection(state, action: PayloadAction<{ direction: number }>) {
+        const character = state.characters[state.userId];
+        const direction = action.payload.direction;
+        setVelocityAndDirection({ character, direction });
+      },
+      _setIdle(state) {
+        const character = state.characters[state.userId];
+        const direction = undefined;
+        setVelocityAndDirection({ character, direction });
+      },
       _addPressedKey(state, action: PayloadAction<KeyboardEvent['key']>) {
         state.pressedKeys[action.payload] = true;
         setVelocityAndDirectionAccordingToPressedKeys(state);
@@ -74,12 +87,54 @@ export function createEverythingSlice(connection: Connection) {
       },
     },
   });
-  const { _addPressedKey, _removePressedKey, _setUserId, _acceptMovementMessage, ...publicActions } = slice.actions;
+  const {
+    _acceptMovementMessage,
+    _addPressedKey,
+    _removePressedKey,
+    _setMovingInDirection,
+    _setIdle,
+    _setUserId,
+    ...publicActions
+  } = slice.actions;
 
   return {
     reducer: slice.reducer,
     actions: publicActions,
     connectSlice(dispatch: Dispatch<AnyAction>) {
+      (() => {
+        const touchStartListener = (event: TouchEvent)  => {
+          // const log = (s: string) => document.body.insertAdjacentHTML('afterbegin', `<div>${s}</div>`);
+          if (event.touches.length !== 1) {
+            return
+          }
+          const startX = event.touches[0].screenX;
+          const startY = event.touches[0].screenY;
+          const controller  = new AbortController();
+          const { signal } = controller;
+          window.addEventListener('touchmove', (event: TouchEvent) => {
+            if (!Array.from(event.changedTouches).map(t => t.identifier).includes(event.touches[0].identifier)) {
+              return
+            }
+
+            const xDelta = event.touches[0].screenX - startX;
+            // negative because y==0 is North
+            const yDelta = -(event.touches[0].screenY - startY);
+            if (yDelta === 0) {
+              return dispatch(_setMovingInDirection({ direction: xDelta > 0 ? toRadians(90) : toRadians(-90) }));
+            }
+            const direction = Math.atan(xDelta / yDelta) + (yDelta < 0 ? Math.PI : 0);
+            dispatch(_setMovingInDirection({ direction }));
+          }, { signal });
+          window.addEventListener('touchend', (event: TouchEvent) => {
+            if (event.touches.length !== 0) {
+              return
+            }
+            controller.abort();
+            dispatch(_setIdle());
+          }, { signal });
+        }
+        window.addEventListener('touchstart', touchStartListener);
+      })();
       (() => {
         dispatch(_setUserId(userId));
         const keydownListener = (event: KeyboardEvent) => {
@@ -110,8 +165,7 @@ export function createEverythingSlice(connection: Connection) {
   }
 }
 
-
-
+const VELOCITY = 1/6;
 const setVelocityAndDirectionAccordingToPressedKeys = (state: State) => {
   if (typeof state.userId !== 'number') {
     throw new Error('unreachable');
@@ -122,7 +176,7 @@ const setVelocityAndDirectionAccordingToPressedKeys = (state: State) => {
   const up = pressedKeys['ArrowUp'] || pressedKeys['w'];
   const down = pressedKeys['ArrowDown'] || pressedKeys['s'];
   const character = state.characters[state.userId];
-  const newDirection = (() => {
+  const direction = (() => {
     if (right && left) {
       return 0;
     }
@@ -152,13 +206,21 @@ const setVelocityAndDirectionAccordingToPressedKeys = (state: State) => {
     }
     return undefined;
   })();
-  character.velocity = newDirection === undefined ? 0 : 1/6;
+  setVelocityAndDirection({ direction, character });
+};
+
+const setVelocityAndDirection = (arg: { direction: number | undefined, character: State['characters'][number]}) => {
+  const { direction: newDirection, character } = arg;
+
+  character.velocity = newDirection === undefined ? 0 : VELOCITY;
   character.direction = newDirection ?? character.direction;
 
-  if (0 < character.direction && character.direction < toRadians(180)) {
+  const directionDegrees = (toDegrees(character.direction) + 360) % 360;
+
+  if (0 < directionDegrees && directionDegrees < 180) {
     character.facing = 'right';
   }
-  if (toRadians(180) < character.direction && character.direction < toRadians(360)) {
+  if (180 < directionDegrees && directionDegrees < 360) {
     character.facing = 'left';
   }
   character.state = (() => {

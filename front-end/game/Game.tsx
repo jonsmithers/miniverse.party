@@ -54,7 +54,6 @@ function EventPublisher() {
   positionRef.current = position;
 
   useEffect(() => {
-    console.log('publish');
     connection.publishMovement({
       velocity,
       direction,
