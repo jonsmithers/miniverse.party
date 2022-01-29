@@ -123,6 +123,10 @@ export function createEverythingSlice(connection: Connection) {
             const xDelta = event.touches[0].screenX - startX;
             // negative because y==0 is North
             const yDelta = -(event.touches[0].screenY - startY);
+            const threshhold = 20;
+            if (Math.abs(xDelta) < threshhold && Math.abs(yDelta) < threshhold) {
+              return dispatch(_setIdle());
+            }
             if (yDelta === 0) {
               return dispatch(_setMovingInDirection({ direction: xDelta > 0 ? toRadians(90) : toRadians(-90) }));
             }
