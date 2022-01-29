@@ -1,8 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import screenfull from 'screenfull';
 
 export default function MaybeFullscreenButton() {
   const [isFullscreen, setFullscreen] = useState(false);
+  useEffect(() => {
+    function onChange() {
+      setFullscreen(screenfull.isFullscreen);
+    }
+    screenfull.on('change', onChange);
+    return () => {
+      screenfull.off('change', onChange);
+    };
+  }, []);
   if (!screenfull.isEnabled) {
     return <></>;
   }
@@ -15,16 +24,12 @@ export default function MaybeFullscreenButton() {
       }}
     >
       {!isFullscreen && (
-        <button
-          onClick={() => screenfull.request().then(() => setFullscreen(true))}
-        >
+        <button onClick={() => screenfull.request()}>
           fullscreen
         </button>
       )}
       {isFullscreen && (
-        <button
-          onClick={() => screenfull.exit().then(() => setFullscreen(false))}
-        >
+        <button onClick={() => screenfull.exit()}>
           leave fullscreen
         </button>
       )}
