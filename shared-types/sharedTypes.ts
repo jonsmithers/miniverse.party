@@ -3,6 +3,9 @@ type MessageWithoutUserId =
     type: 'move';
   } & MovementData)
   | {
+    type: 'kick';
+  }
+  | {
     type: 'nonsense';
     because: 'this' | 'type';
     has: ['a', 'different', 'payload'];

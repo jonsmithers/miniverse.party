@@ -35,7 +35,6 @@ export class ConnectionManager {
         JSON.parse(messageEvent.data).forEach((message: Message) => {
           this.bufferMessage(props.room, message);
         });
-        this.publishBufferedMessages(props.room);
       } catch (e) {
         console.error('unable to receive message...', e);
       }
@@ -47,22 +46,50 @@ export class ConnectionManager {
       this.messageBuffers.set(room, []);
     }
     this.messageBuffers.get(room)!.push(message);
+    this.publishBufferedMessagesNextTick(room);
   }
+  publishBufferedMessagesNextTick = debounce((room: number) =>
+    this.publishBufferedMessages(room)
+  );
   publishBufferedMessages(room: number) {
     const messageBuffer = this.messageBuffers.get(room);
     if (!messageBuffer?.length) {
       return;
     }
+
+    // process
+    for (const message of messageBuffer) {
+      if (message.type === 'kick') {
+        this.connections.delete(message.userId);
+      }
+    }
+
+    // publish
     const messageBufferStr = JSON.stringify(messageBuffer);
+    this.messageBuffers.delete(room);
     for (const connection of this.connections.values()) {
       try {
         connection.ws.send(messageBufferStr);
       } catch (e) {
         console.error('unable to send message...', e);
         console.log(`kicking ${connection.userId}`);
-        this.connections.delete(connection.userId);
+        this.bufferMessage(room, {
+          type: 'kick',
+          userId: connection.userId,
+        });
       }
     }
-    this.messageBuffers.delete(room);
   }
+}
+
+function debounce<T>(fn: (t: T) => void): (t: T) => void {
+  const timerId: { current?: number } = {
+    current: undefined,
+  };
+  return (t: T) => {
+    clearTimeout(timerId.current);
+    timerId.current = setTimeout(() => {
+      fn(t);
+    });
+  };
 }

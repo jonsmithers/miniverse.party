@@ -55,6 +55,9 @@ export function createEverythingSlice(connection: Connection) {
           character.position = [x, y];
         }
       },
+      _acceptKickMessage(state, action: PayloadAction<{ userId: number }>) {
+        delete state.characters[action.payload.userId];
+      },
       _acceptMovementMessage(state, action: PayloadAction<MovementData & { userId: number }>) {
         state.characters[action.payload.userId] = {
           position: action.payload.position,
@@ -89,6 +92,7 @@ export function createEverythingSlice(connection: Connection) {
   });
   const {
     _acceptMovementMessage,
+    _acceptKickMessage,
     _addPressedKey,
     _removePressedKey,
     _setMovingInDirection,
@@ -154,6 +158,9 @@ export function createEverythingSlice(connection: Connection) {
                 return;
               }
               dispatch(_acceptMovementMessage(message));
+              return;
+            case 'kick':
+              dispatch(_acceptKickMessage(message));
               return;
             default:
               console.log('unrecognized message', message.type);
