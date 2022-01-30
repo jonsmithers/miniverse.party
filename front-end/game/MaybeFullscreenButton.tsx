@@ -4,6 +4,9 @@ import screenfull from 'screenfull';
 export default function MaybeFullscreenButton() {
   const [isFullscreen, setFullscreen] = useState(false);
   useEffect(() => {
+    if (!screenfull.isEnabled) {
+      return;
+    }
     function onChange() {
       setFullscreen(screenfull.isFullscreen);
     }
