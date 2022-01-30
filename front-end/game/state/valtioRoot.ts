@@ -13,6 +13,7 @@ export class ValtioRootStore {
 async function createLoader() {
   const loader: PIXI.Loader = new PIXI.Loader();
   loader.add('keen', '/game-assets/keen.json');
+  loader.add('gotMap', '/game-assets/Agot_hbo_guide_map.jpeg');
   loader.load((_, resources) => {
     console.log('resources', resources);
   });

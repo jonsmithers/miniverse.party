@@ -1,9 +1,13 @@
-import { Stage, Text, useApp, useTick } from '@inlet/react-pixi';
+import { Sprite, Stage, Text, useApp, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
 import React from 'react';
 import { Suspense, useEffect, useRef } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
-import { GameContextProvider, useGameContext } from './GameContextProvider';
+import {
+  GameContextProvider,
+  useGameContext,
+  useValtioStore,
+} from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
 import { Position } from './sharedTypes';
 import { useDispatch, useSelector } from './state/rootStore';
@@ -128,8 +132,13 @@ function Ticker() {
 
 function Game() {
   const getPositionOnScreen = useGetPositionOnScreen();
+  const gotMap = useValtioStore().loader.resources.gotMap;
   return (
     <>
+      <Sprite
+        texture={gotMap.texture}
+        position={getPositionOnScreen([300, -500])}
+      />
       <EventPublisher />
       <Characters />
       <Ticker />
