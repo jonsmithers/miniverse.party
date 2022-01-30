@@ -8,6 +8,8 @@ interface State {
     [index: KeyboardEvent['key']]: true
   };
   userId: number;
+  /** position on map, not screen */
+  userCameraPositionOnMap: Position;
   characters: {
     [index: number]: {
       /** radians from north */
@@ -16,7 +18,7 @@ interface State {
       velocity: number,
       facing: 'left' | 'right';
       state: CharacterState;
-      position: Position;
+      positionOnMap: Position;
     }
   }
 }
@@ -28,13 +30,14 @@ export function createEverythingSlice(connection: Connection) {
     initialState: (): State => ({
       pressedKeys: {},
       userId: userId,
+      userCameraPositionOnMap: [0, 0],
       characters: {
         [userId]: {
           direction: 90 * (Math.PI / 180),
           facing: 'right',
           velocity: 0,
           state: 'standRight',
-          position: [0,0],
+          positionOnMap: [0,0],
         }
       },
     }),
@@ -46,21 +49,22 @@ export function createEverythingSlice(connection: Connection) {
           // negative because y==0 is North
           const yDelta = -Math.cos(character.direction) * distance;
           const xDelta = Math.sin(character.direction) * distance;
-          let [x, y] = character.position;
+          let [x, y] = character.positionOnMap;
           x += xDelta;
           y += yDelta;
           if (isNaN(x) || isNaN(y)) {
             console.warn("NaN", { direction: character.direction, distance })
           }
-          character.position = [x, y];
+          character.positionOnMap = [x, y];
         }
+        state.userCameraPositionOnMap = state.characters[state.userId].positionOnMap;
       },
       _acceptKickMessage(state, action: PayloadAction<{ userId: number }>) {
         delete state.characters[action.payload.userId];
       },
       _acceptMovementMessage(state, action: PayloadAction<MovementData & { userId: number }>) {
         state.characters[action.payload.userId] = {
-          position: action.payload.position,
+          positionOnMap: action.payload.position,
           state: action.payload.state,
           velocity: action.payload.velocity,
           direction: action.payload.direction,

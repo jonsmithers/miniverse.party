@@ -1,5 +1,6 @@
 import { useTick } from '@inlet/react-pixi';
 import { useEffect, useRef, useState } from 'react';
+import { Position } from './sharedTypes';
 
 /**
  * @return - speculated value
@@ -82,4 +83,25 @@ export function toRadians(degrees: number) {
 }
 export function toDegrees(radians: number) {
   return radians / TO_RADIANS;
+}
+
+export function getPositionOnScreen(arg: {
+  cameraPositionOnMap: Position;
+  positionOnMap: Position;
+  screenHeight: number;
+  screenWidth: number;
+}): Position {
+  const { cameraPositionOnMap, positionOnMap, screenHeight, screenWidth } = arg;
+  console.log({
+    cameraPositionOnMap,
+    positionOnMap,
+    screenHeight,
+    screenWidth,
+  });
+  const [cameraX, cameraY] = cameraPositionOnMap;
+  const [xOnMap, yOnMap] = positionOnMap;
+  return [
+    xOnMap - cameraX + (screenWidth / 2),
+    yOnMap - cameraY + (screenHeight / 2),
+  ];
 }

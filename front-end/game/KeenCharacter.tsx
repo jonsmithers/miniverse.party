@@ -5,7 +5,7 @@ import { useValtioStore } from './GameContextProvider';
 import { CharacterState } from './sharedTypes';
 
 export const KeenCharacter: React.FC<{
-  position: [number, number];
+  positionOnScreen: [number, number];
   characterState: CharacterState;
 }> = ((props) => {
   const keenSpritesheet = useValtioStore().loader.resources.keen.spritesheet;
@@ -30,7 +30,7 @@ export const KeenCharacter: React.FC<{
   ]);
 
   return (
-    <Container position={props.position}>
+    <Container position={props.positionOnScreen}>
       {textures && (
         <AnimatedSprite
           key={props.characterState}

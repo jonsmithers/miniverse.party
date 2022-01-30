@@ -1,10 +1,13 @@
-import { Stage, Text, useTick } from '@inlet/react-pixi';
+import { Stage, Text, useApp, useTick } from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
+import React from 'react';
 import { Suspense, useEffect, useRef } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
 import { GameContextProvider, useGameContext } from './GameContextProvider';
 import { KeenCharacter } from './KeenCharacter';
+import { Position } from './sharedTypes';
 import { useDispatch, useSelector } from './state/rootStore';
+import { getPositionOnScreen } from './utils';
 
 export default function ComponentWrapper() {
   const { width, height, ref } = useResizeDetector();
@@ -65,10 +68,10 @@ function EventPublisher() {
   const myCharacter = useSelector((store) =>
     store.everything.characters[store.everything.userId]
   );
-  const { velocity, direction, state, position } = myCharacter;
+  const { velocity, direction, state, positionOnMap } = myCharacter;
 
-  const positionRef = useRef(position);
-  positionRef.current = position;
+  const positionRef = useRef(positionOnMap);
+  positionRef.current = positionOnMap;
 
   useEffect(() => {
     connection.publishMovement({
@@ -81,7 +84,25 @@ function EventPublisher() {
   return <></>;
 }
 
+function useGetPositionOnScreen(): (positionOnMap: Position) => Position {
+  const app = useApp();
+  const screenWidth = app.screen.width;
+  const screenHeight = app.screen.height;
+  const cameraPositionOnMap = useSelector((store) =>
+    store.everything.userCameraPositionOnMap
+  );
+  return (positionOnMap) => {
+    return getPositionOnScreen({
+      cameraPositionOnMap,
+      positionOnMap,
+      screenWidth,
+      screenHeight,
+    });
+  };
+}
+
 function Characters() {
+  const getPositionOnScreen = useGetPositionOnScreen();
   const characters = useSelector((store) => store.everything.characters);
   return (
     <>
@@ -89,7 +110,7 @@ function Characters() {
         <KeenCharacter
           key={userId}
           characterState={character.state}
-          position={character.position}
+          positionOnScreen={getPositionOnScreen(character.positionOnMap)}
         />
       ))}
     </>
@@ -106,6 +127,7 @@ function Ticker() {
 }
 
 function Game() {
+  const getPositionOnScreen = useGetPositionOnScreen();
   return (
     <>
       <EventPublisher />
@@ -114,8 +136,7 @@ function Game() {
       <Text
         text='Hello World'
         anchor={0.5}
-        x={150}
-        y={150}
+        position={getPositionOnScreen([150, 150])}
         style={new PIXI.TextStyle({
           align: 'center',
           fontFamily: '"Source Sans Pro", Helvetica, sans-serif',
