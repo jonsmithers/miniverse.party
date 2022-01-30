@@ -1,4 +1,5 @@
 import { AnyAction, createSlice, Dispatch, PayloadAction } from "@reduxjs/toolkit";
+import { SpringValue } from "react-spring";
 import { CharacterState, MovementData, Position } from "../sharedTypes";
 import { toDegrees, toRadians } from "../utils";
 import { Connection } from "../websocket";
@@ -8,8 +9,8 @@ interface State {
     [index: KeyboardEvent['key']]: true
   };
   userId: number;
-  /** position on map, not screen */
   userCameraPositionOnMap: Position;
+  userCameraTargetPositionOnMap: Position;
   characters: {
     [index: number]: {
       /** radians from north */
@@ -24,13 +25,16 @@ interface State {
 }
 
 export function createEverythingSlice(connection: Connection) {
+  const cameraSpringX = new SpringValue(0);
+  const cameraSpringY = new SpringValue(0);
   const userId = connection.userId;
   const slice = createSlice({
     name: 'everything',
     initialState: (): State => ({
       pressedKeys: {},
       userId: userId,
-      userCameraPositionOnMap: [0, 0],
+      userCameraPositionOnMap: [cameraSpringX.get(), cameraSpringX.get()],
+      userCameraTargetPositionOnMap: [cameraSpringX.get(), cameraSpringX.get()],
       characters: {
         [userId]: {
           direction: 90 * (Math.PI / 180),
@@ -57,7 +61,10 @@ export function createEverythingSlice(connection: Connection) {
           }
           character.positionOnMap = [x, y];
         }
-        state.userCameraPositionOnMap = state.characters[state.userId].positionOnMap;
+        state.userCameraTargetPositionOnMap = state.characters[state.userId].positionOnMap;
+        cameraSpringX.start(state.userCameraTargetPositionOnMap[0], { config: {}});
+        cameraSpringY.start(state.userCameraTargetPositionOnMap[1], { config: {}});
+        state.userCameraPositionOnMap = [cameraSpringX.get(), cameraSpringY.get()]
       },
       _acceptKickMessage(state, action: PayloadAction<{ userId: number }>) {
         delete state.characters[action.payload.userId];
