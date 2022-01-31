@@ -92,12 +92,6 @@ export function getPositionOnScreen(arg: {
   screenWidth: number;
 }): Position {
   const { cameraPositionOnMap, positionOnMap, screenHeight, screenWidth } = arg;
-  console.log({
-    cameraPositionOnMap,
-    positionOnMap,
-    screenHeight,
-    screenWidth,
-  });
   const [cameraX, cameraY] = cameraPositionOnMap;
   const [xOnMap, yOnMap] = positionOnMap;
   return [

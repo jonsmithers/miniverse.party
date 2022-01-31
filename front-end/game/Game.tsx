@@ -1,6 +1,13 @@
-import { Sprite, Stage, Text, useApp, useTick } from '@inlet/react-pixi';
+import {
+  Container,
+  Sprite,
+  Stage,
+  Text,
+  useApp,
+  useTick,
+} from '@inlet/react-pixi';
 import * as PIXI from 'pixi.js';
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Suspense, useEffect, useRef } from 'react';
 import { useResizeDetector } from 'react-resize-detector';
 import {
@@ -108,16 +115,26 @@ function useGetPositionOnScreen(): (positionOnMap: Position) => Position {
 function Characters() {
   const getPositionOnScreen = useGetPositionOnScreen();
   const characters = useSelector((store) => store.everything.characters);
+  // sort by y position
+  const sortedCharacters = useMemo(
+    () =>
+      Object.entries(characters).sort((a, b) =>
+        a[1].positionOnMap[1] < b[1].positionOnMap[1] ? -1 : 1
+      ),
+    [characters],
+  );
   return (
-    <>
-      {Object.entries(characters).map(([userId, character]) => (
-        <KeenCharacter
-          key={userId}
-          characterState={character.state}
-          positionOnScreen={getPositionOnScreen(character.positionOnMap)}
-        />
+    <Container sortableChildren>
+      {sortedCharacters.map(([userId, character], zIndex) => (
+        <Container zIndex={zIndex} key={userId}>
+          <KeenCharacter
+            key={userId}
+            characterState={character.state}
+            positionOnScreen={getPositionOnScreen(character.positionOnMap)}
+          />
+        </Container>
       ))}
-    </>
+    </Container>
   );
 }
 

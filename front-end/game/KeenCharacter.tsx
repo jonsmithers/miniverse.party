@@ -7,7 +7,7 @@ import { CharacterState } from './sharedTypes';
 export const KeenCharacter: React.FC<{
   positionOnScreen: [number, number];
   characterState: CharacterState;
-}> = ((props) => {
+}> = function KeenCharacter(props) {
   const keenSpritesheet = useValtioStore().loader.resources.keen.spritesheet;
 
   if (keenSpritesheet === undefined) {
@@ -42,7 +42,7 @@ export const KeenCharacter: React.FC<{
       )}
     </Container>
   );
-});
+};
 
 export const VELOCITY_RIGHT = ([x, y]: [number, number], elapsed: number) =>
   [x + elapsed / 6, y] as [number, number];
