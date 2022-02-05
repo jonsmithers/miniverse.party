@@ -193,14 +193,19 @@ const setVelocityAndDirectionAccordingToPressedKeys = (state: State) => {
     throw new Error('unreachable');
   }
   const { pressedKeys } = state;
-  const right = pressedKeys['ArrowRight'] || pressedKeys['d'];
-  const left = pressedKeys['ArrowLeft'] || pressedKeys['a'];
-  const up = pressedKeys['ArrowUp'] || pressedKeys['w'];
-  const down = pressedKeys['ArrowDown'] || pressedKeys['s'];
+  let right: boolean = pressedKeys['ArrowRight'] || pressedKeys['d'];
+  let left: boolean = pressedKeys['ArrowLeft'] || pressedKeys['a'];
+  let up: boolean = pressedKeys['ArrowUp'] || pressedKeys['w'];
+  let down: boolean = pressedKeys['ArrowDown'] || pressedKeys['s'];
   const character = state.characters[state.userId];
   const direction = (() => {
     if (right && left) {
-      return 0;
+      right = false
+      left = false
+    }
+    if (up && down) {
+      up = false
+      down = false
     }
     if (up && right) {
       return toRadians(45);
