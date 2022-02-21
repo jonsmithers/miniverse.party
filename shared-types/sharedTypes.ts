@@ -15,9 +15,24 @@ type MessageWithoutUserId =
     andSo: 'does this one';
   };
 
-export type Message = MessageWithoutUserId & {
-  userId: number;
-};
+export type Message =
+  | MessageWithoutUserId & {
+    userId: UserId;
+  }
+  | {
+    type: 'hydrate';
+    roomState: RoomState;
+  };
+
+export interface RoomState {
+  players: {
+    [user: UserId]: {
+      movementData: MovementData;
+    };
+  };
+}
+export type UserId = number;
+export type RoomNumber = number;
 
 export interface MovementData {
   position: Position;

@@ -99,3 +99,11 @@ export function getPositionOnScreen(arg: {
     yOnMap - cameraY + (screenHeight / 2),
   ];
 }
+
+//stackoverflow.com/questions/60141960/typescript-key-value-relation-preserving-object-entries-type
+type Entries<T> = {
+  [K in keyof T]: [K, T[K]];
+}[keyof T][];
+export const objectEntries = <T>(obj: T): Entries<T> =>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  Object.entries(obj) as any;

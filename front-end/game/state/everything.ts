@@ -1,7 +1,7 @@
 import { AnyAction, createSlice, Dispatch, PayloadAction } from "@reduxjs/toolkit";
 import { SpringValue } from "react-spring";
-import { CharacterState, MovementData, Position } from "../sharedTypes";
-import { toDegrees, toRadians } from "../utils";
+import { CharacterState, MovementData, Position, RoomState, UserId } from "../sharedTypes";
+import { objectEntries, toDegrees, toRadians } from "../utils";
 import { Connection } from "../websocket";
 
 interface State {
@@ -12,7 +12,7 @@ interface State {
   userCameraPositionOnMap: Position;
   userCameraTargetPositionOnMap: Position;
   characters: {
-    [index: number]: {
+    [index: UserId]: {
       /** radians from north */
       direction: number;
       /** speed in "distance units" per millisecond */
@@ -69,6 +69,19 @@ export function createEverythingSlice(connection: Connection) {
       _acceptKickMessage(state, action: PayloadAction<{ userId: number }>) {
         delete state.characters[action.payload.userId];
       },
+      _acceptHydrateMessage(state, action: PayloadAction<{ roomState: RoomState }>) {
+        for (const [userId, playerState] of objectEntries(action.payload.roomState.players)) {
+          const {movementData} = playerState;
+          const { direction, velocity, state: charState } = movementData;
+          state.characters[userId] = {
+            facing: 'left',
+            positionOnMap: movementData.position,
+            direction,
+            velocity,
+            state: charState,
+          };
+        }
+      },
       _acceptMovementMessage(state, action: PayloadAction<MovementData & { userId: number }>) {
         state.characters[action.payload.userId] = {
           positionOnMap: action.payload.position,
@@ -104,6 +117,7 @@ export function createEverythingSlice(connection: Connection) {
   const {
     _acceptMovementMessage,
     _acceptKickMessage,
+    _acceptHydrateMessage,
     _addPressedKey,
     _removePressedKey,
     _setMovingInDirection,
@@ -176,6 +190,9 @@ export function createEverythingSlice(connection: Connection) {
               return;
             case 'kick':
               dispatch(_acceptKickMessage(message));
+              return;
+            case 'hydrate':
+              dispatch(_acceptHydrateMessage(message));
               return;
             default:
               console.log('unrecognized message', message.type);
