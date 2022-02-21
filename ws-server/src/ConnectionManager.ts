@@ -3,15 +3,17 @@ import { createHttpError } from 'https://deno.land/x/oak@v10.1.0/httpError.ts';
 import { Message } from './sharedTypes.ts';
 
 interface ConnectionProps {
-  userId: number;
+  userId: UserId;
   ws: WebSocket;
-  room: number;
+  room: RoomNumber;
 }
+type UserId = number;
+type RoomNumber = number;
 
 class Connection {
   ws: WebSocket;
-  userId: number;
-  room: number;
+  userId: UserId;
+  room: RoomNumber;
   constructor(props: ConnectionProps) {
     this.userId = props.userId;
     this.room = props.room;
@@ -20,8 +22,8 @@ class Connection {
 }
 
 export class ConnectionManager {
-  connections: Map<number, Connection> = new Map();
-  messageBuffers: Map<number, Message[]> = new Map();
+  connections: Map<UserId, Connection> = new Map();
+  messageBuffers: Map<RoomNumber, Message[]> = new Map();
   add(props: ConnectionProps) {
     if (this.connections.has(props.userId)) {
       throw createHttpError(
@@ -41,17 +43,17 @@ export class ConnectionManager {
     };
     this.connections.set(props.userId, newConnection);
   }
-  bufferMessage(room: number, message: Message) {
+  bufferMessage(room: RoomNumber, message: Message) {
     if (!this.messageBuffers.has(room)) {
       this.messageBuffers.set(room, []);
     }
     this.messageBuffers.get(room)!.push(message);
     this.publishBufferedMessagesNextTick(room);
   }
-  publishBufferedMessagesNextTick = debounce((room: number) =>
+  publishBufferedMessagesNextTick = debounce((room: RoomNumber) =>
     this.publishBufferedMessages(room)
   );
-  publishBufferedMessages(room: number) {
+  publishBufferedMessages(room: RoomNumber) {
     const messageBuffer = this.messageBuffers.get(room);
     if (!messageBuffer?.length) {
       return;
