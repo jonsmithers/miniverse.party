@@ -1,28 +1,16 @@
 import { Status } from 'https://deno.land/x/oak/mod.ts';
 import { createHttpError } from 'https://deno.land/x/oak@v10.1.0/httpError.ts';
-import { Message, RoomNumber, RoomState, UserId } from './sharedTypes.ts';
+import {
+  Message,
+  RoomNumber,
+  RoomStateMutator,
+  UserId,
+} from './sharedTypes.ts';
 
 interface ConnectionProps {
   userId: UserId;
   ws: WebSocket;
   room: RoomNumber;
-}
-class RoomStateManager {
-  roomState: RoomState = { players: {} };
-  applyEvent(message: Message) {
-    switch (message.type) {
-      case 'move':
-        this.roomState.players[message.userId] ??= { movementData: message };
-        this.roomState.players[message.userId].movementData = message;
-        break;
-      case 'kick':
-        delete this.roomState.players[message.userId];
-        break;
-    }
-  }
-  isEmpty() {
-    return !Object.keys(this.roomState.players).length;
-  }
 }
 
 class Connection {
@@ -55,7 +43,7 @@ class Connection {
 export class ConnectionManager {
   connections: Map<UserId, Connection> = new Map();
   messageBuffers: Map<RoomNumber, Message[]> = new Map();
-  roomStateManagers: Map<RoomNumber, RoomStateManager> = new Map();
+  roomStateMutators: Map<RoomNumber, RoomStateMutator> = new Map();
   add(props: ConnectionProps) {
     if (this.connections.has(props.userId)) {
       throw createHttpError(
@@ -77,7 +65,7 @@ export class ConnectionManager {
     newConnection.waitToOpen.then(() => {
       newConnection.send([{
         type: 'hydrate',
-        roomState: this.getRoomStateManager(props.room).roomState,
+        roomState: this.getRoomStateMutator(props.room).roomState,
       }]);
     });
   }
@@ -91,12 +79,12 @@ export class ConnectionManager {
   publishBufferedMessagesNextTick = debounce((room: RoomNumber) =>
     this.publishBufferedMessages(room)
   );
-  getRoomStateManager(room: RoomNumber): RoomStateManager {
-    if (!this.roomStateManagers.has(room)) {
+  getRoomStateMutator(room: RoomNumber): RoomStateMutator {
+    if (!this.roomStateMutators.has(room)) {
       console.log(`creating room ${room}`);
-      this.roomStateManagers.set(room, new RoomStateManager());
+      this.roomStateMutators.set(room, new RoomStateMutator());
     }
-    return this.roomStateManagers.get(room)!;
+    return this.roomStateMutators.get(room)!;
   }
   publishBufferedMessages(room: RoomNumber) {
     const messageBuffer = this.messageBuffers.get(room);
@@ -111,11 +99,11 @@ export class ConnectionManager {
         this.connections.delete(message.userId);
       }
       try {
-        const roomStateManager = this.getRoomStateManager(room);
-        roomStateManager.applyEvent(message);
-        if (roomStateManager.isEmpty()) {
+        const roomStateMutator = this.getRoomStateMutator(room);
+        roomStateMutator.applyEvent(message);
+        if (roomStateMutator.isEmpty()) {
           console.log(`deleting room ${room}`);
-          this.roomStateManagers.delete(room);
+          this.roomStateMutators.delete(room);
         }
       } catch (e) {
         // ideally we'd prevent this message from publishing

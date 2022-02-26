@@ -34,6 +34,24 @@ export interface RoomState {
 export type UserId = number;
 export type RoomNumber = number;
 
+export class RoomStateMutator {
+  roomState: RoomState = { players: {} };
+  applyEvent(message: Message) {
+    switch (message.type) {
+      case 'move':
+        this.roomState.players[message.userId] ??= { movementData: message };
+        this.roomState.players[message.userId].movementData = message;
+        break;
+      case 'kick':
+        delete this.roomState.players[message.userId];
+        break;
+    }
+  }
+  isEmpty() {
+    return !Object.keys(this.roomState.players).length;
+  }
+}
+
 export interface MovementData {
   position: Position;
   /** radians from north */
