@@ -1,23 +1,33 @@
-import {
-  Application,
-  helpers,
-  Router,
-  send,
-  Status,
-} from 'https://deno.land/x/oak/mod.ts';
-import { createHttpError } from 'https://deno.land/x/oak@v10.1.0/httpError.ts';
+import { Application } from 'jsr:@oak/oak/application';
+import { Router } from 'jsr:@oak/oak/router';
 import { ConnectionManager } from './ConnectionManager.ts';
+import { send } from 'jsr:@oak/oak/send';
+import { Status } from 'jsr:@oak/commons@^1.0/status';
+import { createHttpError } from 'jsr:@oak/commons/http_errors';
 
 const app = new Application();
 
 const connectionManager = new ConnectionManager();
 
-const router: Router = new Router()
+const requireTruthy = <T>(t: T | undefined | null | false): T => {
+  if (!t) {
+    throw new Error('non-truthy is not allowed here');
+  }
+  return t;
+};
+
+const router = new Router()
   .get('/websocket', (context) => {
     connectionManager.add({
       ws: context.upgrade(),
-      userId: validateNumber('userId', helpers.getQuery(context).userId),
-      room: validateNumber('room', helpers.getQuery(context).room),
+      userId: validateNumber(
+        'userId',
+        requireTruthy(context.request.url.searchParams.get('userId')),
+      ),
+      room: validateNumber(
+        'room',
+        requireTruthy(context.request.url.searchParams.get('room')),
+      ),
     });
   });
 app.use(router.routes());

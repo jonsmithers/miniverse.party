@@ -1,11 +1,11 @@
-import { Status } from 'https://deno.land/x/oak/mod.ts';
-import { createHttpError } from 'https://deno.land/x/oak@v10.1.0/httpError.ts';
+import { createHttpError } from 'jsr:@oak/commons/http_errors';
 import {
   Message,
   RoomNumber,
   RoomStateMutator,
   UserId,
 } from './sharedTypes.ts';
+import { Status } from 'jsr:@oak/commons@^1.0/status';
 
 interface ConnectionProps {
   userId: UserId;
