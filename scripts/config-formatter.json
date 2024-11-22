@@ -1,13 +1,13 @@
 {
   "lint": {
     "files": {
-      "include": ["front-end/", "ws-server/"],
+      "include": ["front-end/", "server/"],
       "exclude": ["front-end/node_modules"]
     }
   },
   "fmt": {
     "files": {
-      "include": ["front-end", "ws-server"],
+      "include": ["front-end", "server"],
       "exclude": ["front-end/node_modules"]
     }
   }

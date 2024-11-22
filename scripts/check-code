@@ -26,7 +26,7 @@ done
 
 shopt -s extglob; GLOBIGNORE='node_modules/*';
 frontend_files='front-end/*.ts?(x) front-end/**/*.ts?(x)'
-server_files=ws-server/src/*.ts
+server_files=server/src/*.ts
 shared_files=shared-types/*.ts
 
 set -e -x
