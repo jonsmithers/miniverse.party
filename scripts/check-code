@@ -25,7 +25,7 @@ while :; do
 done
 
 shopt -s extglob; GLOBIGNORE='node_modules/*';
-frontend_files='front-end/*.ts?(x) front-end/**/*.ts?(x)'
+frontend_files='frontend/*.ts?(x) front-end/**/*.ts?(x)'
 server_files=server/src/*.ts
 shared_files=shared-types/*.ts
 
@@ -42,7 +42,7 @@ deno lint --config scripts/config-formatter.json $shared_files
 #   $frontend_files
 
 (
-  cd front-end;
+  cd frontend;
   npm run lint $maybe_fix;
   npx tsc;
 )
